@@ -40,8 +40,8 @@ impl ToString for CsvS {
 }
 
 impl CountUp for CsvS {
-    fn count(&self, other: &CsvS) -> u32 {
-        let count = other.count.parse::<u32>().unwrap();
+    fn count(&self) -> u32 {
+        let count = self.count.parse::<u32>().unwrap();
         count
     }
 }
@@ -67,10 +67,7 @@ impl Equal for CsvS {
 }
 fn main() {
     let source = r#"a,male,10,2
-b,female,20,3
-b,female,30,3
-z,male,10,3
-x,female,30,3
+x,female,30,1
 b,female,20,3
 b,female,30,3
 z,male,10,3
@@ -93,9 +90,9 @@ impl<T: Equal + ToString + Clone + Eq + Hash + CountUp> Conter<T> {
         };
         for s in source {
             if let Some(key) = counter.get_count_up_key(&s) {
-                *counter.table.borrow_mut().get_mut(&key).unwrap() += key.count(&s);
+                *counter.table.borrow_mut().get_mut(&key).unwrap() += &s.count();
             } else {
-                counter.table.borrow_mut().insert(s.clone(), s.count(&s));
+                counter.table.borrow_mut().insert(s.clone(), s.count());
             }
         }
         counter
@@ -128,7 +125,7 @@ trait ToString {
     fn to_string_without_count(&self) -> String;
 }
 trait CountUp {
-    fn count(&self, _: &Self) -> u32 {
+    fn count(&self) -> u32 {
         1
     }
 }
