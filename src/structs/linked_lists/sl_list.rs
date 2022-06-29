@@ -4,7 +4,6 @@ use std::{cell::RefCell, fmt::Debug, rc::Rc};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SLList<T: Clone + Debug + PartialEq + Eq> {
     n: usize,
-
     tail: Option<Rc<RefCell<Node<T>>>>,
     head: Option<Rc<RefCell<Node<T>>>>,
 }
@@ -27,16 +26,15 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         }
         self.n += 1;
     }
-    pub fn pop(&mut self) {
-        if self.n == 0 {
-            return;
-        }
-        if let Some(new_head) = self.head.take() {
-            if let Some(new_head) = new_head.borrow_mut().next.take() {
-                self.head = Some(new_head)
+    pub fn pop(&mut self) -> Option<T> {
+        if let Some(head) = self.head.take() {
+            if let Some(new_head) = head.clone().borrow_mut().next.take() {
+                self.head = Some(new_head);
+                self.n -= 1;
+                return Some(Rc::try_unwrap(head).unwrap().into_inner().x);
             }
         }
-        self.n -= 1;
+        return None;
     }
 }
 impl<T: Clone + Debug + PartialEq + Eq> List<T> for SLList<T> {
@@ -74,8 +72,18 @@ fn node_to_node<T: Clone + Debug + PartialEq + Eq>(node: Node<T>) -> Node<T> {
 
 #[cfg(test)]
 mod sl_list_tests {
+    use super::*;
     #[test]
-    fn get_test() {
-        unimplemented!();
+    fn push_test() {
+        let mut list = SLList::new();
+        list.push(1);
+        assert_eq!(
+            list,
+            SLList {
+                n: 1,
+                head: Some(Rc::new(RefCell::new(Node::new(1)))),
+                tail: Some(Rc::new(RefCell::new(Node::new(1)))),
+            }
+        )
     }
 }
