@@ -27,14 +27,15 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         self.n += 1;
     }
     pub fn pop(&mut self) -> Option<T> {
-        if let Some(head) = self.head.take() {
-            if let Some(new_head) = head.clone().borrow_mut().next.take() {
+        self.head.take().map(|head| {
+            if let Some(new_head) = head.borrow_mut().next.take() {
                 self.head = Some(new_head);
-                self.n -= 1;
-                return Some(Rc::try_unwrap(head).unwrap().into_inner().x);
-            }
-        }
-        return None;
+            } else {
+                self.tail = None;
+            };
+            self.n -= 1;
+            Rc::try_unwrap(head).unwrap().into_inner().x
+        })
     }
 }
 impl<T: Clone + Debug + PartialEq + Eq> List<T> for SLList<T> {
@@ -74,16 +75,36 @@ fn node_to_node<T: Clone + Debug + PartialEq + Eq>(node: Node<T>) -> Node<T> {
 mod sl_list_tests {
     use super::*;
     #[test]
-    fn push_test() {
+    fn pop_test() {
         let mut list = SLList::new();
-        list.push(1);
+        list.push("hello");
+        list.push("world");
+        assert_eq!(list.pop(), Some("world"));
+        let node = Some(Rc::new(RefCell::new(Node::new("hello"))));
         assert_eq!(
             list,
             SLList {
                 n: 1,
-                head: Some(Rc::new(RefCell::new(Node::new(1)))),
-                tail: Some(Rc::new(RefCell::new(Node::new(1)))),
+                head: node.clone(),
+                tail: node.clone(),
             }
         )
+    }
+    #[test]
+    fn push_test() {
+        let mut list = SLList::new();
+        list.push(1);
+        list.push(2);
+        let head = Rc::new(RefCell::new(Node::new(2)));
+        let tail = Rc::new(RefCell::new(Node::new(1)));
+        head.borrow_mut().next = Some(tail.clone());
+        assert_eq!(
+            list,
+            SLList {
+                n: 2,
+                head: Some(head),
+                tail: Some(tail),
+            }
+        );
     }
 }
