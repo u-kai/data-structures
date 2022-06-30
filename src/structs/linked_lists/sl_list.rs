@@ -2,6 +2,8 @@ use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::interfaces::{queue::Queue, stack::Stack};
 
+use super::node::Node;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SLList<T: Clone + Debug + PartialEq + Eq> {
     n: usize,
@@ -60,24 +62,11 @@ impl<T: Clone + Debug + PartialEq + Eq> Stack<T> for SLList<T> {
         })
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Node<T: Clone + Debug + PartialEq + Eq> {
-    x: T,
-    next: Option<Rc<RefCell<Node<T>>>>,
-}
-
-impl<T: Clone + Debug + PartialEq + Eq> Node<T> {
-    fn new(x: T) -> Self {
-        Node { x, next: None }
-    }
-    fn set_next(&mut self, next: Rc<RefCell<Node<T>>>) {
-        self.next = Some(next)
-    }
-}
 
 #[cfg(test)]
 mod sl_list_tests {
     use super::*;
+    use crate::structs::linked_lists::node::Node;
     #[test]
     fn add_test() {
         let mut list = SLList::new();
