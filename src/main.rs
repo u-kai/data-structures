@@ -4,6 +4,7 @@ use crate::interfaces::stack::Stack;
 
 mod interfaces;
 mod structs;
+mod types;
 fn main() {
     let mut data = SLList::new();
     data.push(1);

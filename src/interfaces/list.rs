@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-pub trait List<T: Clone + Debug + PartialEq + Eq> {
+pub trait List<T: Clone + Debug + Eq + PartialEq> {
     fn size(&self) -> usize;
     fn get(&self, i: usize) -> Option<T>;
     fn set(&mut self, i: usize, x: T) -> ();

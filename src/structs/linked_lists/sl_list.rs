@@ -1,16 +1,19 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
-use crate::interfaces::{queue::Queue, stack::Stack};
+use crate::{
+    interfaces::{queue::Queue, stack::Stack},
+    types::link::StrongLink,
+};
 
 use super::node::Node;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SLList<T: Clone + Debug + PartialEq + Eq> {
+pub struct SLList<T: Clone + Debug + Eq + PartialEq> {
     n: usize,
-    tail: Option<Rc<RefCell<Node<T>>>>,
-    head: Option<Rc<RefCell<Node<T>>>>,
+    tail: Option<StrongLink<Node<T>>>,
+    head: Option<StrongLink<Node<T>>>,
 }
-impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
+impl<T: Clone + Debug + Eq + PartialEq> SLList<T> {
     pub fn new() -> Self {
         SLList {
             n: 0,
@@ -19,7 +22,7 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         }
     }
 }
-impl<T: Clone + Debug + PartialEq + Eq> Queue<T> for SLList<T> {
+impl<T: Clone + Debug + Eq + PartialEq> Queue<T> for SLList<T> {
     fn add(&mut self, x: T) {
         let node = Rc::new(RefCell::new(Node::new(x)));
         if self.n == 0 {
@@ -38,7 +41,7 @@ impl<T: Clone + Debug + PartialEq + Eq> Queue<T> for SLList<T> {
     }
 }
 
-impl<T: Clone + Debug + PartialEq + Eq> Stack<T> for SLList<T> {
+impl<T: Clone + Debug + Eq + PartialEq> Stack<T> for SLList<T> {
     fn push(&mut self, x: T) {
         let node = Rc::new(RefCell::new(Node::new(x)));
         if let Some(head) = self.head.take() {
