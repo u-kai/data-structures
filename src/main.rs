@@ -1,5 +1,7 @@
 use structs::linked_lists::sl_list::SLList;
 
+use crate::interfaces::stack::Stack;
+
 mod interfaces;
 mod structs;
 fn main() {

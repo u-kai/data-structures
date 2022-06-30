@@ -1,5 +1,7 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
+use crate::interfaces::{queue::Queue, stack::Stack};
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SLList<T: Clone + Debug + PartialEq + Eq> {
     n: usize,
@@ -14,7 +16,9 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
             head: None,
         }
     }
-    pub fn add(&mut self, x: T) {
+}
+impl<T: Clone + Debug + PartialEq + Eq> Queue<T> for SLList<T> {
+    fn add(&mut self, x: T) {
         let node = Rc::new(RefCell::new(Node::new(x)));
         if self.n == 0 {
             self.head = Some(node.clone());
@@ -27,7 +31,13 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         old_tail.borrow_mut().set_next(node);
         self.n += 1;
     }
-    pub fn push(&mut self, x: T) {
+    fn remove(&mut self) -> Option<T> {
+        self.pop()
+    }
+}
+
+impl<T: Clone + Debug + PartialEq + Eq> Stack<T> for SLList<T> {
+    fn push(&mut self, x: T) {
         let node = Rc::new(RefCell::new(Node::new(x)));
         if let Some(head) = self.head.take() {
             node.borrow_mut().set_next(head);
@@ -38,7 +48,7 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         }
         self.n += 1;
     }
-    pub fn pop(&mut self) -> Option<T> {
+    fn pop(&mut self) -> Option<T> {
         self.head.take().map(|head| {
             if let Some(new_head) = head.borrow_mut().next.take() {
                 self.head = Some(new_head);
