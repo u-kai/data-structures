@@ -1,4 +1,3 @@
-use crate::interfaces::list::List;
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -14,6 +13,19 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
             tail: None,
             head: None,
         }
+    }
+    pub fn add(&mut self, x: T) {
+        let node = Rc::new(RefCell::new(Node::new(x)));
+        if self.n == 0 {
+            self.head = Some(node.clone());
+            self.tail = Some(node.clone());
+            self.n += 1;
+            return;
+        }
+        let old_tail = self.tail.take().unwrap();
+        self.tail = Some(node.clone());
+        old_tail.borrow_mut().set_next(node);
+        self.n += 1;
     }
     pub fn push(&mut self, x: T) {
         let node = Rc::new(RefCell::new(Node::new(x)));
@@ -38,19 +50,6 @@ impl<T: Clone + Debug + PartialEq + Eq> SLList<T> {
         })
     }
 }
-impl<T: Clone + Debug + PartialEq + Eq> List<T> for SLList<T> {
-    fn add(&mut self, i: usize, x: T) -> () {}
-    fn get(&self, i: usize) -> Result<T, String> {
-        Err(format!("not impl"))
-    }
-    fn remove(&mut self, i: usize) -> Result<T, String> {
-        Err(format!("not impl"))
-    }
-    fn set(&mut self, i: usize, x: T) -> () {}
-    fn size(&self) -> usize {
-        self.n
-    }
-}
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Node<T: Clone + Debug + PartialEq + Eq> {
     x: T,
@@ -65,15 +64,27 @@ impl<T: Clone + Debug + PartialEq + Eq> Node<T> {
         self.next = Some(next)
     }
 }
-fn node_to_node<T: Clone + Debug + PartialEq + Eq>(node: Node<T>) -> Node<T> {
-    let x = node.x;
-    let next = node.next;
-    Node { x, next }
-}
 
 #[cfg(test)]
 mod sl_list_tests {
     use super::*;
+    #[test]
+    fn add_test() {
+        let mut list = SLList::new();
+        list.add("hello");
+        list.add("world");
+        let head = Rc::new(RefCell::new(Node::new("hello")));
+        let tail = Rc::new(RefCell::new(Node::new("world")));
+        head.borrow_mut().set_next(tail.clone());
+        assert_eq!(
+            list,
+            SLList {
+                n: 2,
+                head: Some(head),
+                tail: Some(tail)
+            }
+        )
+    }
     #[test]
     fn pop_test() {
         let mut list = SLList::new();
