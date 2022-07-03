@@ -5,5 +5,5 @@ pub trait List<T: Clone + Default + Debug> {
     fn get(&self, i: usize) -> Option<T>;
     fn set(&mut self, i: usize, x: T) -> ();
     fn add(&mut self, i: usize, x: T) -> ();
-    fn remove(&mut self, i: usize) -> Result<T, String>;
+    fn remove(&mut self, i: usize) -> Option<T>;
 }

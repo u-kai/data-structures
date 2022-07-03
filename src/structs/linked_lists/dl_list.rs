@@ -1,6 +1,9 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
-use crate::types::link::{StrongLink, WeakLink};
+use crate::{
+    interfaces::list::List,
+    types::link::{StrongLink, WeakLink},
+};
 #[derive(Debug)]
 pub struct DLList<T: Default + Clone + Debug + Eq + PartialEq> {
     n: isize,
@@ -16,7 +19,40 @@ impl<T: Clone + Debug + Eq + PartialEq + Default> DLList<T> {
         tail.change_prev(&head);
         DLList { n: -1, head, tail }
     }
-    pub fn add(&mut self, index: usize, x: T) {
+    fn get_node(&self, index: usize) -> Option<NodeWrapper<T>> {
+        if index as isize > self.n {
+            return None;
+        }
+        let mut node = self.head.next();
+        for _ in 0..index {
+            if node.is_none() {
+                return None;
+            }
+            node = node.unwrap().next()
+        }
+        node
+    }
+}
+
+impl<T: Default + Clone + Debug + Eq + PartialEq> List<T> for DLList<T> {
+    fn size(&self) -> usize {
+        self.n as usize
+    }
+    fn set(&mut self, index: usize, x: T) -> () {
+        if let Some(node) = self.get_node(index) {
+            node.0.borrow_mut().x = x
+        }
+    }
+    fn remove(&mut self, index: usize) -> Option<T> {
+        let result = self.get_node(index).map(|node| node.value());
+        self.get_node(index).map(|node| node.delete());
+        self.n = self.n - 1;
+        result
+    }
+    fn get(&self, index: usize) -> Option<T> {
+        self.get_node(index).map(|node| node.value())
+    }
+    fn add(&mut self, index: usize, x: T) -> () {
         let node = NodeWrapper::new(x);
         if index as isize > (self.n + 1) {
             panic!("do not adding index : {} ", index)
@@ -34,35 +70,7 @@ impl<T: Clone + Debug + Eq + PartialEq + Default> DLList<T> {
         let old_node = self.get_node(index).unwrap();
         old_node.change_prev(&node)
     }
-    pub fn remove(&mut self, index: usize) -> Option<T> {
-        let result = self.get_node(index).map(|node| node.value());
-        self.get_node(index).map(|node| node.delete());
-        self.n = self.n - 1;
-        result
-    }
-    pub fn get(&self, index: usize) -> Option<T> {
-        self.get_node(index).map(|node| node.value())
-    }
-    pub fn set(&self, index: usize, x: T) {
-        if let Some(node) = self.get_node(index) {
-            node.0.borrow_mut().x = x
-        }
-    }
-    fn get_node(&self, index: usize) -> Option<NodeWrapper<T>> {
-        if index as isize > self.n {
-            return None;
-        }
-        let mut node = self.head.next();
-        for _ in 0..index {
-            if node.is_none() {
-                return None;
-            }
-            node = node.unwrap().next()
-        }
-        node
-    }
 }
-
 #[derive(Debug, Clone)]
 struct NodeWrapper<T: Default + Clone + Debug + Eq + PartialEq>(Rc<RefCell<Node<T>>>);
 impl<T: Default + Clone + Debug + Eq + PartialEq> NodeWrapper<T> {

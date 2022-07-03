@@ -1,4 +1,6 @@
 use structs::linked_lists::dl_list::DLList;
+
+use crate::interfaces::list::List;
 mod interfaces;
 mod structs;
 mod types;
