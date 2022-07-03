@@ -34,7 +34,10 @@ impl<T: Clone + Debug + Eq + PartialEq + Default> DLList<T> {
         let old_node = self.get_node(index).unwrap();
         old_node.change_prev(&node)
     }
-    pub fn get_node(&mut self, index: usize) -> Option<NodeWrapper<T>> {
+    pub fn get(&self, index: usize) -> Option<T> {
+        self.get_node(index).map(|node| node.value())
+    }
+    fn get_node(&self, index: usize) -> Option<NodeWrapper<T>> {
         if index as isize > self.n {
             return None;
         }
@@ -57,6 +60,15 @@ impl<T: Default + Clone + Debug + Eq + PartialEq> NodeWrapper<T> {
     }
     fn value(&self) -> T {
         self.0.borrow().x.clone()
+    }
+    fn delete(self) -> Self {
+        let prev = self.prev();
+        let next = self.next();
+        if let (Some(prev), Some(next)) = (prev, next) {
+            prev.change_next(&next);
+            next.change_prev(&prev);
+        }
+        self
     }
     fn next(&self) -> Option<Self> {
         let n = &self.0.borrow().next; //.map(|node| NodeWrapper(node))
@@ -146,5 +158,21 @@ mod dl_list_test {
         assert_eq!(list.get_node(0).unwrap().value(), "*****");
         assert_eq!(list.get_node(1).unwrap().value(), "hello");
         assert_eq!(list.get_node(2).unwrap().value(), "world");
+    }
+    #[test]
+    fn node_delete_test() {
+        let node_wrapper = NodeWrapper::new("hello");
+        let n2 = NodeWrapper::new("world");
+        let n3 = NodeWrapper::new("a");
+        let n4 = NodeWrapper::new("goodbye");
+        node_wrapper.change_prev(&n3);
+        node_wrapper.change_next(&n2);
+        node_wrapper.change_next(&n4);
+        println!("before delete");
+        println!("{:?}", node_wrapper);
+        n2.delete();
+        println!("after delete");
+        println!("{:?}", node_wrapper);
+        assert!(false);
     }
 }
