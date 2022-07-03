@@ -27,8 +27,11 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
         self.n += 1;
     }
     fn remove(&mut self) -> Option<T> {
+        if self.array.len() == 0 {
+            return None;
+        }
         let x = self.array[self.j].take();
-        self.j += (self.j + 1) % self.n;
+        self.j = (self.j + 1) % self.array.len();
         self.n -= 1;
         if self.array.len() >= 3 * self.n {
             self.resize();
@@ -51,7 +54,15 @@ mod array_queue_test {
     use super::*;
     #[test]
     fn remove_test() {
-        unimplemented!();
+        let mut array = ArrayQueue::new();
+        array.add("hello");
+        array.add("world");
+        array.add("goodbye");
+        assert_eq!(array.remove().unwrap(), "hello");
+        assert_eq!(array.remove().unwrap(), "world");
+        assert_eq!(array.remove().unwrap(), "goodbye");
+        assert_eq!(array.remove(), None);
+        assert_eq!(array.remove(), None);
     }
     #[test]
     fn add_test() {
