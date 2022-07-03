@@ -1,13 +1,4 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    cell::{Ref, RefCell},
-    rc::{Rc, Weak},
-};
-
-use structs::linked_lists::{dl_list::DLList, sl_list::SLList};
-
-use crate::interfaces::stack::Stack;
-
+use structs::linked_lists::dl_list::DLList;
 mod interfaces;
 mod structs;
 mod types;
@@ -18,10 +9,15 @@ fn main() {
     list.add(1, "hello");
     list.add(2, "world");
     list.add(3, "*****");
+    println!("{:?}", list.get(0));
+    println!("{:?}", list.get(1));
+    println!("{:?}", list.get(2));
+    println!("{:?}", list.get(3));
+    list.remove(3);
+    list.set(0, "#####");
     println!("{:?}", list);
     println!("{:?}", list.get(0));
     println!("{:?}", list.get(1));
     println!("{:?}", list.get(2));
     println!("{:?}", list.get(3));
-    println!("{:?}", list.get(4));
 }

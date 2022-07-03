@@ -34,8 +34,19 @@ impl<T: Clone + Debug + Eq + PartialEq + Default> DLList<T> {
         let old_node = self.get_node(index).unwrap();
         old_node.change_prev(&node)
     }
+    pub fn remove(&mut self, index: usize) -> Option<T> {
+        let result = self.get_node(index).map(|node| node.value());
+        self.get_node(index).map(|node| node.delete());
+        self.n = self.n - 1;
+        result
+    }
     pub fn get(&self, index: usize) -> Option<T> {
         self.get_node(index).map(|node| node.value())
+    }
+    pub fn set(&self, index: usize, x: T) {
+        if let Some(node) = self.get_node(index) {
+            node.0.borrow_mut().x = x
+        }
     }
     fn get_node(&self, index: usize) -> Option<NodeWrapper<T>> {
         if index as isize > self.n {
@@ -61,14 +72,13 @@ impl<T: Default + Clone + Debug + Eq + PartialEq> NodeWrapper<T> {
     fn value(&self) -> T {
         self.0.borrow().x.clone()
     }
-    fn delete(self) -> Self {
+    fn delete(self) {
         let prev = self.prev();
         let next = self.next();
         if let (Some(prev), Some(next)) = (prev, next) {
-            prev.change_next(&next);
             next.change_prev(&prev);
         }
-        self
+        drop(self)
     }
     fn next(&self) -> Option<Self> {
         let n = &self.0.borrow().next; //.map(|node| NodeWrapper(node))
@@ -111,7 +121,9 @@ impl<T: Default + Clone + Debug + Eq + PartialEq> NodeWrapper<T> {
         node.0.borrow_mut().prev = Some(Rc::downgrade(&self.0));
     }
 }
-
+impl<T: Default + Clone + Debug + Eq + PartialEq> Drop for NodeWrapper<T> {
+    fn drop(&mut self) {}
+}
 #[derive(Default, Clone, Debug)]
 struct Node<T: Default + Clone + Debug + Eq + PartialEq> {
     x: T,
@@ -127,15 +139,61 @@ impl<T: Default + Clone + Debug + Eq + PartialEq> Node<T> {
             next: None,
         }
     }
-    fn value(&self) -> &T {
-        &self.x
-    }
 }
 
 #[cfg(test)]
 mod dl_list_test {
 
     use super::*;
+    #[test]
+    fn set_test() {
+        let mut list = DLList::new();
+        list.add(0, "*****");
+        list.add(1, "hello");
+        list.add(2, "world");
+        list.add(3, "*****");
+        list.set(0, "#####");
+        assert_eq!(list.get(0).unwrap(), "#####");
+        assert_eq!(list.get(1).unwrap(), "hello");
+        assert_eq!(list.get(2).unwrap(), "world");
+        assert_eq!(list.get(3).unwrap(), "*****");
+        assert_eq!(list.get(4), None);
+    }
+    #[test]
+    fn get_test() {
+        let mut list = DLList::new();
+        list.add(0, "*****");
+        list.add(1, "hello");
+        list.add(2, "world");
+        assert_eq!(list.get(0), Some("*****"));
+        assert_eq!(list.get(1), Some("hello"));
+        assert_eq!(list.get(2), Some("world"));
+        assert_eq!(list.get(4), None);
+    }
+    #[test]
+    fn get_node_test() {
+        let mut list = DLList::new();
+        list.add(0, "*****");
+        list.add(1, "hello");
+        list.add(2, "world");
+        assert_eq!(list.get_node(0).unwrap().value(), "*****");
+        assert_eq!(list.get_node(1).unwrap().value(), "hello");
+        assert_eq!(list.get_node(2).unwrap().value(), "world");
+    }
+    #[test]
+    fn remove_test() {
+        let mut list = DLList::new();
+        list.add(0, "*****");
+        list.add(1, "hello");
+        list.add(2, "world");
+        list.add(3, "*****");
+        let remove = list.remove(0);
+        assert_eq!(remove.unwrap(), "*****");
+        assert_eq!(list.get(0).unwrap(), "hello");
+        assert_eq!(list.get(1).unwrap(), "world");
+        assert_eq!(list.get(2).unwrap(), "*****");
+        assert_eq!(list.get(3), None);
+    }
     #[test]
     fn node_wrapper_test() {
         let node_wrapper = NodeWrapper::new("hello");
@@ -148,31 +206,5 @@ mod dl_list_test {
         assert_eq!(node_wrapper.prev().unwrap().value(), n3.value());
         assert_eq!(node_wrapper.next().unwrap().value(), n2.value());
         assert_eq!(n2.next().unwrap().value(), n4.value());
-    }
-    #[test]
-    fn dl_list_test() {
-        let mut list = DLList::new();
-        list.add(0, "*****");
-        list.add(1, "hello");
-        list.add(2, "world");
-        assert_eq!(list.get_node(0).unwrap().value(), "*****");
-        assert_eq!(list.get_node(1).unwrap().value(), "hello");
-        assert_eq!(list.get_node(2).unwrap().value(), "world");
-    }
-    #[test]
-    fn node_delete_test() {
-        let node_wrapper = NodeWrapper::new("hello");
-        let n2 = NodeWrapper::new("world");
-        let n3 = NodeWrapper::new("a");
-        let n4 = NodeWrapper::new("goodbye");
-        node_wrapper.change_prev(&n3);
-        node_wrapper.change_next(&n2);
-        node_wrapper.change_next(&n4);
-        println!("before delete");
-        println!("{:?}", node_wrapper);
-        n2.delete();
-        println!("after delete");
-        println!("{:?}", node_wrapper);
-        assert!(false);
     }
 }
