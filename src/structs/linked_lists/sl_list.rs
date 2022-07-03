@@ -5,8 +5,6 @@ use crate::{
     types::link::StrongLink,
 };
 
-use super::node::Node;
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SLList<T: Clone + Debug + Eq + PartialEq> {
     n: usize,
@@ -65,11 +63,24 @@ impl<T: Clone + Debug + Eq + PartialEq> Stack<T> for SLList<T> {
         })
     }
 }
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Node<T: Clone + Debug + Eq + PartialEq> {
+    pub x: T,
+    pub next: Option<StrongLink<Node<T>>>,
+}
+
+impl<T: Clone + Debug + Eq + PartialEq> Node<T> {
+    fn new(x: T) -> Self {
+        Node { x, next: None }
+    }
+    fn set_next(&mut self, next: StrongLink<Node<T>>) {
+        self.next = Some(next)
+    }
+}
 
 #[cfg(test)]
 mod sl_list_tests {
     use super::*;
-    use crate::structs::linked_lists::node::Node;
     #[test]
     fn add_test() {
         let mut list = SLList::new();
