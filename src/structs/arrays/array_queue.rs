@@ -9,7 +9,7 @@ struct ArrayQueue<T: Clone + Debug + Default> {
 
 impl<T: Clone + Debug + Default> ArrayQueue<T> {
     pub fn new() -> Self {
-        let data = vec![Default::default(); 4];
+        let data = vec![];
         ArrayQueue {
             n: 0,
             j: 0,
@@ -26,8 +26,8 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
             .unwrap() = Some(x);
         self.n += 1;
     }
-    fn remove(&mut self) -> Option<T> {
-        if self.array.len() == 0 {
+    pub fn remove(&mut self) -> Option<T> {
+        if self.is_bound(1) {
             return None;
         }
         let x = self.array[self.j].take();
@@ -38,14 +38,17 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
         }
         x
     }
-    fn resize(&mut self) {
-        let new_array = vec![Default::default(); self.n * 2];
+    pub fn resize(&mut self) {
+        let new_array = vec![Default::default(); (self.n * 2).max(1)];
         let mut old_array = std::mem::replace(&mut self.array, new_array.into_boxed_slice());
         let len = old_array.len();
         for i in 0..self.n {
             self.array[i] = old_array[(i + self.j) % len].take();
         }
         self.j = 0;
+    }
+    fn is_bound(&self, i: usize) -> bool {
+        i > self.n || i > self.array.len()
     }
 }
 
@@ -62,7 +65,6 @@ mod array_queue_test {
         assert_eq!(array.remove().unwrap(), "world");
         assert_eq!(array.remove().unwrap(), "goodbye");
         assert_eq!(array.remove(), None);
-        assert_eq!(array.remove(), None);
     }
     #[test]
     fn add_test() {
@@ -74,7 +76,7 @@ mod array_queue_test {
             ArrayQueue {
                 n: 2,
                 j: 0,
-                array: Box::new([Some("hello"), Some("world"), None, None])
+                array: Box::new([Some("hello"), Some("world")])
             }
         );
         array.add("goodbye");
