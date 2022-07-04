@@ -15,6 +15,14 @@ fn main() {
     println!("{:?}", list.get(1));
     println!("{:?}", list.get(2));
     println!("{:?}", list.get(3));
+    println!("{:?}", list.get(0));
+    println!("{:?}", list.get(1));
+    println!("{:?}", list.get(2));
+    println!("{:?}", list.get(3));
+    println!("{:?}", list.get(0));
+    println!("{:?}", list.get(1));
+    println!("{:?}", list.get(2));
+    println!("{:?}", list.get(3));
     list.remove(3);
     list.set(0, "#####");
     println!("{:?}", list);
