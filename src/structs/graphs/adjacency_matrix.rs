@@ -77,6 +77,8 @@ mod adjacency_matrix_test {
         assert_eq!(am.out_edges(1), vec![0, 2]);
         assert_eq!(am.out_edges(2), vec![0, 1]);
         assert_eq!(am.in_edges(2), vec![1]);
+        assert!(am.has_edge(2, 1));
+        assert!(!am.has_edge(1, 0));
         am.remove_edge(0, 1);
         assert_eq!(am.in_edges(0), vec![2]);
     }
