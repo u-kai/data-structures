@@ -12,44 +12,48 @@ impl AdjacencyMatrix {
             matrix: vec![vec![false; n]; n],
         }
     }
-    fn len_check(&self, i: usize, j: usize) -> bool {
+    fn is_over_len(&self, i: usize, j: usize) -> bool {
         self.n < i || self.n < j
+    }
+    fn len_check(&self, i: usize, j: usize) -> () {
+        if self.is_over_len(i, j) {
+            panic!("out of index")
+        }
+    }
+    fn i_check(&self, i: usize) -> () {
+        if self.n < i {
+            panic!("out of index")
+        }
     }
 }
 
 impl Graph for AdjacencyMatrix {
     fn add_edge(&mut self, i: usize, j: usize) {
-        if self.len_check(i, j) {
-            panic!("out of index")
-        }
         self.matrix[i][j] = true
     }
     fn has_edge(&self, i: usize, j: usize) -> bool {
-        if self.len_check(i, j) {
-            panic!("out of index")
-        }
+        self.len_check(i, j);
         let column = self.matrix.get(i).unwrap();
         *column.get(j).unwrap()
     }
     fn in_edges(&self, i: usize) -> Vec<usize> {
-        if self.n < i {
-            panic!("out of index")
-        }
+        self.i_check(i);
         self.matrix
             .get(i)
-            .map(|v| {
-                v.iter()
-                    .enumerate()
-                    .filter(|(_, b)| **b)
-                    .map(|(u, _)| u)
-                    .collect::<Vec<_>>()
-            })
             .unwrap()
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| **b)
+            .map(|(u, _)| u)
+            .collect::<Vec<_>>()
     }
     fn out_edges(&self, i: usize) -> Vec<usize> {
         vec![]
     }
-    fn remove_edge(&mut self, i: usize, j: usize) {}
+    fn remove_edge(&mut self, i: usize, j: usize) {
+        self.len_check(i, j);
+        self.matrix[i][j] = false
+    }
 }
 #[cfg(test)]
 mod adjacency_matrix_test {
@@ -60,5 +64,8 @@ mod adjacency_matrix_test {
         am.add_edge(0, 1);
         am.add_edge(0, 2);
         assert_eq!(am.in_edges(0), vec![1, 2]);
+        assert_eq!(am.in_edges(2), vec![]);
+        am.remove_edge(0, 1);
+        assert_eq!(am.in_edges(0), vec![2]);
     }
 }
