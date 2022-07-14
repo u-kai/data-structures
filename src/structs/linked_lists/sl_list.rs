@@ -19,6 +19,16 @@ impl<T: Clone + Debug + Eq + PartialEq> SLList<T> {
             head: None,
         }
     }
+    pub fn new_with(xs: Vec<T>) -> Self {
+        let mut sl_list = SLList::new();
+        for x in xs {
+            sl_list.push(x)
+        }
+        sl_list
+    }
+    pub fn size(&self) -> usize {
+        self.n
+    }
 }
 impl<T: Clone + Debug + Eq + PartialEq> Queue<T> for SLList<T> {
     fn add(&mut self, x: T) {
