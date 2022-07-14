@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::interfaces::graph::Graph;
 
 pub struct AdjacencyMatrix {
@@ -33,8 +35,8 @@ impl Graph for AdjacencyMatrix {
     }
     fn has_edge(&self, i: usize, j: usize) -> bool {
         self.len_check(i, j);
-        let column = self.matrix.get(i).unwrap();
-        *column.get(j).unwrap()
+        let row = self.matrix.get(i).unwrap();
+        *row.get(j).unwrap()
     }
     fn in_edges(&self, i: usize) -> Vec<usize> {
         self.i_check(i);
@@ -44,11 +46,17 @@ impl Graph for AdjacencyMatrix {
             .iter()
             .enumerate()
             .filter(|(_, b)| **b)
-            .map(|(u, _)| u)
+            .map(|(j, _)| j)
             .collect::<Vec<_>>()
     }
     fn out_edges(&self, i: usize) -> Vec<usize> {
-        vec![]
+        self.i_check(i);
+        self.matrix
+            .iter()
+            .enumerate()
+            .filter(|(_j, row)| *row.get(i).unwrap())
+            .map(|(j, _row)| j)
+            .collect()
     }
     fn remove_edge(&mut self, i: usize, j: usize) {
         self.len_check(i, j);
@@ -63,8 +71,12 @@ mod adjacency_matrix_test {
         let mut am = AdjacencyMatrix::new(3);
         am.add_edge(0, 1);
         am.add_edge(0, 2);
+        am.add_edge(2, 1);
+        am.add_edge(1, 2);
         assert_eq!(am.in_edges(0), vec![1, 2]);
-        assert_eq!(am.in_edges(2), vec![]);
+        assert_eq!(am.out_edges(1), vec![0, 2]);
+        assert_eq!(am.out_edges(2), vec![0, 1]);
+        assert_eq!(am.in_edges(2), vec![1]);
         am.remove_edge(0, 1);
         assert_eq!(am.in_edges(0), vec![2]);
     }
