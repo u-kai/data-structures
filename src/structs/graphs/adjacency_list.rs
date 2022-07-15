@@ -22,6 +22,27 @@ impl AdjacencyList {
             adj: vec![vec![]; n],
         }
     }
+    pub fn dfs2(&self, i: usize) -> Vec<usize> {
+        let mut v = vec![];
+        self.private_dfs2(i, &mut v);
+        v
+    }
+    fn private_dfs2(&self, i: usize, buffer: &mut Vec<usize>) {
+        let mut stack = SLList::new_with(vec![i]);
+        let mut colors = vec![Color::White; self.n];
+        while stack.size() > 0 {
+            let k = stack.pop().unwrap();
+            let edge = self.out_edges(k);
+            for j in edge {
+                let color = colors[j].clone();
+                if color == Color::White {
+                    colors[j] = Color::Gray;
+                    buffer.push(j);
+                    stack.push(j)
+                }
+            }
+        }
+    }
     pub fn dfs(&self, i: usize) -> Vec<usize> {
         let mut v = vec![];
         let mut colors = vec![Color::White; self.n];
@@ -110,6 +131,17 @@ mod adjacency_list_test {
         al.add_edge(2, 5);
         assert_eq!(al.dfs(0), vec![1, 3, 4, 2, 5]);
         assert_eq!(al.dfs(1), vec![3, 4,]);
+    }
+    #[test]
+    fn dfs2_test() {
+        let mut al = AdjacencyList::new(6);
+        al.add_edge(0, 1);
+        al.add_edge(0, 2);
+        al.add_edge(1, 3);
+        al.add_edge(1, 4);
+        al.add_edge(2, 5);
+        assert_eq!(al.dfs2(0), vec![1, 2, 5, 3, 4,]);
+        assert_eq!(al.dfs2(1), vec![3, 4,]);
     }
     #[test]
     fn can_reach_test() {
