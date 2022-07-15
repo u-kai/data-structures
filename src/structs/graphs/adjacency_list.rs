@@ -9,11 +9,35 @@ pub struct AdjacencyList {
     adj: Vec<Vec<usize>>,
 }
 
+#[derive(PartialEq, Eq, Clone)]
+enum Color {
+    White,
+    Black,
+    Gray,
+}
 impl AdjacencyList {
     pub fn new(n: usize) -> Self {
         Self {
             n,
             adj: vec![vec![]; n],
+        }
+    }
+    pub fn dfs(&self, i: usize) -> Vec<usize> {
+        let mut v = vec![];
+        let mut colors = vec![Color::White; self.n];
+        self.private_dfs(i, &mut colors, &mut v);
+        v
+    }
+    fn private_dfs(&self, i: usize, colors: &mut Vec<Color>, buffer: &mut Vec<usize>) {
+        let edge = self.out_edges(i);
+        for k in 0..edge.len() {
+            let j = edge[k];
+            let color = colors[j].clone();
+            if color == Color::White {
+                colors[j] = Color::Gray;
+                buffer.push(j);
+                self.private_dfs(j, colors, buffer);
+            }
         }
     }
     pub fn can_reach(&self, start: usize, target: usize) -> bool {
@@ -76,6 +100,17 @@ impl Graph for AdjacencyList {
 #[cfg(test)]
 mod adjacency_list_test {
     use super::*;
+    #[test]
+    fn dfs_test() {
+        let mut al = AdjacencyList::new(6);
+        al.add_edge(0, 1);
+        al.add_edge(0, 2);
+        al.add_edge(1, 3);
+        al.add_edge(1, 4);
+        al.add_edge(2, 5);
+        assert_eq!(al.dfs(0), vec![1, 3, 4, 2, 5]);
+        assert_eq!(al.dfs(1), vec![3, 4,]);
+    }
     #[test]
     fn can_reach_test() {
         let mut al = AdjacencyList::new(6);
