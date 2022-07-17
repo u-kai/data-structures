@@ -64,12 +64,6 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SkipListSSet<T> {
         let node = Rc::new(RefCell::new(Node::new(x, height)));
         self.n += 1;
         self.change_height(height);
-        if self.sentinel.height == 0 {
-            if self.sentinel.nexts[0].is_none() {
-                self.sentinel.nexts[0] = Some(node.clone());
-                return true;
-            }
-        }
         for h in (0..=height).rev() {
             let next = self.sentinel.get_next(h);
             if next.is_none() {
