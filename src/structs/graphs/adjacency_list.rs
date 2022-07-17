@@ -60,6 +60,7 @@ impl AdjacencyList {
                 self.private_dfs(j, colors, buffer);
             }
         }
+        colors[i] = Color::Black;
     }
     pub fn can_reach(&self, start: usize, target: usize) -> bool {
         if start == target {

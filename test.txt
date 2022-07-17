@@ -1,0 +1,214 @@
+Some(RefCell { value: Node { x: 0, height: 0, nexts: [Some(RefCell { value: Node { x: 1, height: 1, nexts: [Some(RefCell { value: Node { x: 2, height: 3, nexts: [Some(RefCell { value: Node { x: 3, height: 2, nexts: [None, None, None] } }),
+[Some(
+    RefCell { value: Node { x: 2, height: 3, nexts: [
+        Some(RefCell { value: Node { x: 3, height: 2, nexts: [None, None, None] } }), 
+        Some(RefCell { value: Node { x: 3, height: 2, nexts: [None, None, None] } }), 
+        Some(RefCell { value: Node { x: 3, height: 2, nexts: [None, None, None] } }), 
+        None] } }),
+         No
+        
+RefCell { 
+    value: Node { 
+        x: 2, height: 3, nexts: [
+            Some(
+                RefCell { 
+                    value: Node { 
+                        x: 3, height: 2, nexts: [
+                            None, None, None
+                        ] 
+                    } 
+                }
+            ), 
+            Some(
+                RefCell { 
+                    value: Node { 
+                        x: 3, height: 2, nexts: [
+                            None, None, None
+                        ] 
+                    } 
+                }
+            ), 
+            Some(
+                RefCell { 
+                    value: Node {
+                         x: 3, height: 2, nexts: [
+                            None, None, None
+                        ] 
+                    } 
+                }
+            ), 
+            None
+        ] 
+    } 
+}
+
+[
+    Some(
+        RefCell { 
+            value: Node { 
+                x: 0, height: 0, nexts: [
+                    Some(
+                        RefCell {
+                             value: Node {
+                                 x: 1, height: 1, nexts: [
+                                    Some(
+                                        RefCell {
+                                             value: Node {
+                                                 x: 2, height: 3, nexts: [
+                                                    Some(
+                                                        RefCell { 
+                                                            value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    Some(
+                                                        RefCell {
+                                                             value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    Some(
+                                                        RefCell { 
+                                                            value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    Some(
+                                        RefCell { 
+                                            value: Node { 
+                                                x: 2, height: 3, nexts: [
+                                                    Some(
+                                                        RefCell {
+                                                             value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    Some(
+                                                        RefCell {
+                                                             value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    Some(
+                                                        RefCell { 
+                                                            value: Node {
+                                                                 x: 3, height: 2, nexts: [
+                                                                    None, None, None
+                                                                ] 
+                                                            } 
+                                                        }
+                                                    ), 
+                                                    None
+                                                ] 
+                                            } 
+                                        }
+                                    )
+                                ] 
+                            } 
+                        }
+                    )
+                ] 
+            } 
+        }
+    ), 
+    Some(
+        RefCell {
+             value: Node {
+                 x: 1, height: 1, nexts: [
+                    Some(
+                        RefCell {
+                             value: Node {
+                                 x: 2, height: 3, nexts: [
+                                    Some(
+                                        RefCell { 
+                                            value: Node { 
+                                                x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    Some(
+                                        RefCell {
+                                             value: Node {
+                                                 x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    Some(
+                                        RefCell {
+                                             value: Node {
+                                                 x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    None
+                                ] 
+                            } 
+                        }
+                    ), 
+                    Some(
+                        RefCell { 
+                            value: Node { 
+                                x: 2, height: 3, nexts: [
+                                    Some(
+                                        RefCell { 
+                                            value: Node { 
+                                                x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    Some(
+                                        RefCell {
+                                             value: Node {
+                                                 x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ), 
+                                    Some(
+                                        RefCell {
+                                             value: Node {
+                                                 x: 3, height: 2, nexts: [
+                                                    None, None, None
+                                                ] 
+                                            } 
+                                        }
+                                    ),
+                                    None
+                                ] 
+                            } 
+                        }
+                    )
+                ] 
+            } 
+        }
+    )
+]
