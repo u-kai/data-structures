@@ -41,12 +41,13 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SkipListSSet<T> {
         Self { n: 0, sentinel }
     }
     pub fn find_pred_node(&self, x: T) -> Option<T> {
+        if self.n == 0 {
+            return None;
+        }
         let mut next = self.sentinel.get_next(self.sentinel.height);
         let mut h = self.sentinel.height as isize;
         while h >= 0 {
-            if next.is_none() {
-                return None;
-            } else if next.as_ref().unwrap().borrow().x == x {
+            if next.as_ref().unwrap().borrow().x == x {
                 return Some(x);
             }
             let next_next = next.as_ref().unwrap().borrow().get_next(h as usize);
@@ -55,11 +56,12 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SkipListSSet<T> {
                     return Some(x);
                 }
                 next = Some(next_next.as_ref().unwrap().clone());
-            } else {
-                h -= 1;
-                if h < 0 {
+            }
+            if next_next.is_none() {
+                if h == 0 {
                     return None;
                 }
+                h -= 1;
                 next = self.sentinel.get_next(h as usize);
             }
         }
