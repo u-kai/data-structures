@@ -1,6 +1,6 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
-use rand::{prelude::ThreadRng, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 
 use crate::interfaces::sset::SSet;
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -39,6 +39,31 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SkipListSSet<T> {
     pub fn new() -> Self {
         let sentinel = Node::new(Default::default(), 0);
         Self { n: 0, sentinel }
+    }
+    pub fn find_pred_node(&self, x: T) -> Option<T> {
+        let mut next = self.sentinel.get_next(self.sentinel.height);
+        let mut h = self.sentinel.height as isize;
+        while h >= 0 {
+            if next.is_none() {
+                return None;
+            } else if next.as_ref().unwrap().borrow().x == x {
+                return Some(x);
+            }
+            let next_next = next.as_ref().unwrap().borrow().get_next(h as usize);
+            if next_next.is_some() {
+                if next_next.as_ref().unwrap().borrow().x == x {
+                    return Some(x);
+                }
+                next = Some(next_next.as_ref().unwrap().clone());
+            } else {
+                h -= 1;
+                if h < 0 {
+                    return None;
+                }
+                next = self.sentinel.get_next(h as usize);
+            }
+        }
+        None
     }
     fn gen_height(&self) -> usize {
         let mut height = 0;
@@ -102,7 +127,7 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SSet<T> for SkipListSSet<T> {
         self.add_base(x, height)
     }
     fn find(&self, x: T) -> bool {
-        true
+        self.find_pred_node(x).is_some()
     }
     fn remove(&mut self, x: T) -> Option<T> {
         None
@@ -115,6 +140,21 @@ impl<T: Clone + Debug + PartialEq + Eq + Default> SSet<T> for SkipListSSet<T> {
 #[cfg(test)]
 mod skip_list_sset_test {
     use super::*;
+    #[test]
+    fn find_test() {
+        let mut list = SkipListSSet::new();
+        list.add(0);
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        list.add(10);
+        assert!(list.find(0));
+        assert!(list.find(1));
+        assert!(list.find(2));
+        assert!(list.find(3));
+        assert!(!list.find(4));
+        assert!(list.find(10));
+    }
     #[test]
     fn add_test() {
         let mut list = SkipListSSet::new();
