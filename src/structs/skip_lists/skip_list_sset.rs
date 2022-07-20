@@ -70,16 +70,6 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
         }
         None
     }
-    fn gen_height(&self) -> usize {
-        let mut height = 0;
-        let mut rng = thread_rng();
-        let mut random: bool = rng.gen();
-        while random {
-            height += 1;
-            random = rng.gen();
-        }
-        height
-    }
     fn update_height(&mut self, height: usize) {
         let new_height = if self.height() < height {
             let push_data_num = height - self.height();
@@ -89,7 +79,7 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
         } else {
             self.height()
         };
-        self.sentinel.borrow_mut().height = new_height;
+        self.change_height(new_height);
     }
     fn add_base_book(&mut self, x: T, height: usize) -> bool {
         let u = &self.sentinel;
@@ -120,7 +110,7 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
                     continue;
                 }
                 while next_next.is_some() {
-                    let next_next_next = next_next.as_ref().unwrap().borrow_mut().get_next(h);
+                    let next_next_next = next_next.as_ref().unwrap().borrow().get_next(h);
                     if next_next_next.is_none() {
                         next_next
                             .as_ref()
@@ -136,6 +126,16 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
         }
         true
     }
+    fn gen_height(&self) -> usize {
+        let mut height = 0;
+        let mut rng = thread_rng();
+        let mut random: bool = rng.gen();
+        while random {
+            height += 1;
+            random = rng.gen();
+        }
+        height
+    }
     fn remove_book(&mut self, x: T) -> Option<T> {
         let mut removed = false;
         let u = self.sentinel.clone();
@@ -148,6 +148,9 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
     }
     fn height(&self) -> usize {
         self.sentinel.borrow().height
+    }
+    fn change_height(&mut self, h: usize) {
+        self.sentinel.borrow_mut().height = h;
     }
     fn get_next(&self, h: usize) -> Option<Rc<RefCell<Node<T>>>> {
         self.sentinel.borrow().get_next(h)
