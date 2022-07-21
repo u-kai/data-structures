@@ -22,15 +22,12 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> Node<T> {
             nexts: vec![None; height + 1],
         }
     }
-    fn set_next(&mut self, h: usize, next: Rc<RefCell<Node<T>>>) {
-        if let Some(changed) = self.nexts.get_mut(h) {
-            *changed = Some(next.clone())
+    fn set_next(&mut self, h: usize, next: Option<Rc<RefCell<Node<T>>>>) {
+        if self.nexts.get(h).is_some() {
+            *self.nexts.get_mut(h).unwrap() = next
         } else {
-            self.nexts.push(Some(next.clone()))
+            self.nexts.push(next);
         }
-    }
-    fn set_none(&mut self, h: usize) {
-        *self.nexts.get_mut(h).unwrap() = None
     }
     fn get_next(&self, h: usize) -> Option<Rc<RefCell<Node<T>>>> {
         if self.nexts.get(h).is_some() {
@@ -114,14 +111,13 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
             let prev_node = stack.pop();
             match prev_node {
                 Some(prev_node) => {
-                    if let Some(next_node) = prev_node.borrow().get_next(h) {
-                        new_node.borrow_mut().set_next(h, next_node)
-                    };
-                    prev_node.borrow_mut().set_next(h, new_node.clone());
+                    let next_node = prev_node.borrow().get_next(h);
+                    new_node.borrow_mut().set_next(h, next_node);
+                    prev_node.borrow_mut().set_next(h, Some(new_node.clone()));
                 }
                 None => {
                     self.change_height(h);
-                    self.set_next(h, new_node.clone());
+                    self.set_next(h, Some(new_node.clone()));
                 }
             }
         }
@@ -147,7 +143,7 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
     fn get_next(&self, h: usize) -> Option<Rc<RefCell<Node<T>>>> {
         self.sentinel.borrow().get_next(h)
     }
-    fn set_next(&mut self, h: usize, next: Rc<RefCell<Node<T>>>) {
+    fn set_next(&mut self, h: usize, next: Option<Rc<RefCell<Node<T>>>>) {
         self.sentinel.borrow_mut().set_next(h, next)
     }
 }
@@ -178,12 +174,7 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SSet<T> for
                     if &x == next_value {
                         removed = true;
                         let next_next = next.borrow().get_next(h as usize);
-                        if next_next.is_some() {
-                            prev.borrow_mut()
-                                .set_next(h as usize, next_next.unwrap().clone());
-                        } else {
-                            prev.borrow_mut().set_none(h as usize);
-                        }
+                        prev.borrow_mut().set_next(h as usize, next_next);
                         h -= 1;
                     }
                 }
@@ -250,28 +241,34 @@ mod skip_list_sset_test {
         let three_node = Rc::new(RefCell::new(Node::new(3, 2)));
         let ten_node = Rc::new(RefCell::new(Node::new(10, 0)));
         let seven_node = Rc::new(RefCell::new(Node::new(7, 10)));
-        two_node.borrow_mut().set_next(0, three_node.clone());
-        two_node.borrow_mut().set_next(1, three_node.clone());
-        two_node.borrow_mut().set_next(2, three_node.clone());
-        one_node.borrow_mut().set_next(0, two_node.clone());
-        one_node.borrow_mut().set_next(1, two_node.clone());
-        zero_node.borrow_mut().set_next(0, one_node.clone());
-        three_node.borrow_mut().set_next(0, seven_node.clone());
-        three_node.borrow_mut().set_next(1, seven_node.clone());
-        three_node.borrow_mut().set_next(2, seven_node.clone());
-        two_node.borrow_mut().set_next(3, seven_node.clone());
-        seven_node.borrow_mut().set_next(0, ten_node.clone());
-        sentinel.set_next(0, zero_node.clone());
-        sentinel.set_next(1, one_node.clone());
-        sentinel.set_next(2, two_node.clone());
-        sentinel.set_next(3, two_node.clone());
-        sentinel.set_next(4, seven_node.clone());
-        sentinel.set_next(5, seven_node.clone());
-        sentinel.set_next(6, seven_node.clone());
-        sentinel.set_next(7, seven_node.clone());
-        sentinel.set_next(8, seven_node.clone());
-        sentinel.set_next(9, seven_node.clone());
-        sentinel.set_next(10, seven_node.clone());
+        two_node.borrow_mut().set_next(0, Some(three_node.clone()));
+        two_node.borrow_mut().set_next(1, Some(three_node.clone()));
+        two_node.borrow_mut().set_next(2, Some(three_node.clone()));
+        one_node.borrow_mut().set_next(0, Some(two_node.clone()));
+        one_node.borrow_mut().set_next(1, Some(two_node.clone()));
+        zero_node.borrow_mut().set_next(0, Some(one_node.clone()));
+        three_node
+            .borrow_mut()
+            .set_next(0, Some(seven_node.clone()));
+        three_node
+            .borrow_mut()
+            .set_next(1, Some(seven_node.clone()));
+        three_node
+            .borrow_mut()
+            .set_next(2, Some(seven_node.clone()));
+        two_node.borrow_mut().set_next(3, Some(seven_node.clone()));
+        seven_node.borrow_mut().set_next(0, Some(ten_node.clone()));
+        sentinel.set_next(0, Some(zero_node.clone()));
+        sentinel.set_next(1, Some(one_node.clone()));
+        sentinel.set_next(2, Some(two_node.clone()));
+        sentinel.set_next(3, Some(two_node.clone()));
+        sentinel.set_next(4, Some(seven_node.clone()));
+        sentinel.set_next(5, Some(seven_node.clone()));
+        sentinel.set_next(6, Some(seven_node.clone()));
+        sentinel.set_next(7, Some(seven_node.clone()));
+        sentinel.set_next(8, Some(seven_node.clone()));
+        sentinel.set_next(9, Some(seven_node.clone()));
+        sentinel.set_next(10, Some(seven_node.clone()));
         let sentinel = Rc::new(RefCell::new(sentinel));
         let tobe = SkipListSSet { sentinel, n: 6 };
         assert_eq!(list, tobe);
@@ -300,23 +297,23 @@ mod skip_list_sset_test {
         let two_node = Rc::new(RefCell::new(Node::new(2, 3)));
         let seven_node = Rc::new(RefCell::new(Node::new(7, 10)));
         let ten_node = Rc::new(RefCell::new(Node::new(10, 0)));
-        zero_node.borrow_mut().set_next(0, two_node.clone());
-        two_node.borrow_mut().set_next(0, seven_node.clone());
-        two_node.borrow_mut().set_next(1, seven_node.clone());
-        two_node.borrow_mut().set_next(2, seven_node.clone());
-        two_node.borrow_mut().set_next(3, seven_node.clone());
-        seven_node.borrow_mut().set_next(0, ten_node.clone());
-        sentinel.set_next(0, zero_node.clone());
-        sentinel.set_next(1, two_node.clone());
-        sentinel.set_next(2, two_node.clone());
-        sentinel.set_next(3, two_node.clone());
-        sentinel.set_next(4, seven_node.clone());
-        sentinel.set_next(5, seven_node.clone());
-        sentinel.set_next(6, seven_node.clone());
-        sentinel.set_next(7, seven_node.clone());
-        sentinel.set_next(8, seven_node.clone());
-        sentinel.set_next(9, seven_node.clone());
-        sentinel.set_next(10, seven_node.clone());
+        zero_node.borrow_mut().set_next(0, Some(two_node.clone()));
+        two_node.borrow_mut().set_next(0, Some(seven_node.clone()));
+        two_node.borrow_mut().set_next(1, Some(seven_node.clone()));
+        two_node.borrow_mut().set_next(2, Some(seven_node.clone()));
+        two_node.borrow_mut().set_next(3, Some(seven_node.clone()));
+        seven_node.borrow_mut().set_next(0, Some(ten_node.clone()));
+        sentinel.set_next(0, Some(zero_node.clone()));
+        sentinel.set_next(1, Some(two_node.clone()));
+        sentinel.set_next(2, Some(two_node.clone()));
+        sentinel.set_next(3, Some(two_node.clone()));
+        sentinel.set_next(4, Some(seven_node.clone()));
+        sentinel.set_next(5, Some(seven_node.clone()));
+        sentinel.set_next(6, Some(seven_node.clone()));
+        sentinel.set_next(7, Some(seven_node.clone()));
+        sentinel.set_next(8, Some(seven_node.clone()));
+        sentinel.set_next(9, Some(seven_node.clone()));
+        sentinel.set_next(10, Some(seven_node.clone()));
         let sentinel = Rc::new(RefCell::new(sentinel));
         let tobe = SkipListSSet { sentinel, n: 4 };
 
