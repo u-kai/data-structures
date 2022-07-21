@@ -99,13 +99,8 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSe
                     }
                 }
                 None => {
-                    if h == 0 {
-                        stack.push(prev.clone());
-                        break;
-                    } else {
-                        stack.push(prev.clone());
-                        h -= 1;
-                    }
+                    stack.push(prev.clone());
+                    h -= 1;
                 }
             }
         }
