@@ -35,12 +35,13 @@ impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> Node<T> {
     fn get_next(&self, h: usize) -> Option<Rc<RefCell<Node<T>>>> {
         if self.nexts.get(h).is_some() {
             if self.nexts.get(h).unwrap().is_some() {
-                return Some(self.nexts[h].as_ref().unwrap().clone());
+                Some(self.nexts[h].as_ref().unwrap().clone())
             } else {
-                return None;
+                None
             }
+        } else {
+            None
         }
-        None
     }
 }
 
