@@ -66,6 +66,30 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> SkipListList<T> {
         let sentinel = Rc::new(RefCell::new(Node::new(Default::default(), 0)));
         Self { sentinel, n: 0 }
     }
+    fn find_pred(&self, i: usize) -> Rc<RefCell<Node<T>>> {
+        let mut prev_node = self.sentinel.clone();
+        let mut r = self.height() as isize;
+        let mut prev_node_index = -1;
+        while r >= 0 {
+            loop {
+                if prev_node.borrow().get_next(r as usize).is_some() {
+                    if (prev_node_index + (prev_node.borrow().get_length(r as usize) as isize))
+                        < i as isize
+                    {
+                        prev_node_index += prev_node.borrow().get_length(r as usize) as isize;
+                        let next = prev_node.borrow().get_next(r as usize).unwrap();
+                        prev_node = next;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            r -= 1;
+        }
+        prev_node
+    }
     fn add_base(&mut self, i: usize, x: T, h: usize) {
         if h > self.height() {
             self.change_height(h)
@@ -139,7 +163,8 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> List<T> for SkipListList<T> {
         self.add_base(i, x, h);
     }
     fn get(&self, i: usize) -> Option<T> {
-        None
+        let result = self.find_pred(i).borrow().get_next(0);
+        result.map(|node| node.borrow().x.clone())
     }
     fn remove(&mut self, i: usize) -> Option<T> {
         None
@@ -156,17 +181,30 @@ mod skip_list_list_test {
     use std::{cell::RefCell, rc::Rc};
 
     #[test]
+    fn get_test() {
+        let mut list = SkipListList::new();
+        list.add(0, 0);
+        list.add(1, 1);
+        list.add(2, 2);
+        list.add(3, 3);
+
+        assert_eq!(list.get(2), Some(2));
+        assert_eq!(list.get(4), None);
+    }
+    #[test]
     fn add_test() {
         let mut list = SkipListList::new();
         list.add_base(0, 0, 0);
         list.add_base(1, 1, 1);
         list.add_base(2, 2, 0);
         list.add_base(3, 3, 4);
+        list.add_base(3, 4, 0);
         let sentinel = Rc::new(RefCell::new(Node::new(0, 4)));
         let zero_node = Rc::new(RefCell::new(Node::new(0, 0)));
         let one_node = Rc::new(RefCell::new(Node::new(1, 1)));
         let two_node = Rc::new(RefCell::new(Node::new(2, 0)));
         let three_node = Rc::new(RefCell::new(Node::new(3, 4)));
+        let four_node = Rc::new(RefCell::new(Node::new(4, 0)));
 
         zero_node.borrow_mut().set_length(0, 1);
         zero_node.borrow_mut().set_next(0, Some(one_node.clone()));
@@ -177,8 +215,11 @@ mod skip_list_list_test {
         one_node.borrow_mut().set_next(1, Some(three_node.clone()));
         one_node.borrow_mut().set_length(1, 2);
 
-        two_node.borrow_mut().set_next(0, Some(three_node.clone()));
+        two_node.borrow_mut().set_next(0, Some(four_node.clone()));
         two_node.borrow_mut().set_length(0, 1);
+
+        four_node.borrow_mut().set_next(0, Some(three_node.clone()));
+        four_node.borrow_mut().set_length(0, 1);
 
         sentinel.borrow_mut().set_length(0, 1);
         sentinel.borrow_mut().set_next(0, Some(zero_node.clone()));
@@ -194,7 +235,7 @@ mod skip_list_list_test {
 
         sentinel.borrow_mut().set_length(4, 4);
         sentinel.borrow_mut().set_next(4, Some(three_node.clone()));
-        assert_eq!(list, SkipListList { n: 4, sentinel })
+        assert_eq!(list, SkipListList { n: 5, sentinel })
     }
     //#[test]
     //fn find_pred_test() {
