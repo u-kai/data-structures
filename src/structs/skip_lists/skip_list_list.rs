@@ -169,7 +169,10 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> List<T> for SkipListList<T> {
     fn remove(&mut self, i: usize) -> Option<T> {
         None
     }
-    fn set(&mut self, i: usize, x: T) -> () {}
+    fn set(&mut self, i: usize, x: T) -> () {
+        let change_node = self.find_pred(i).borrow().get_next(0);
+        change_node.map(|node| node.borrow_mut().x = x);
+    }
     fn size(&self) -> usize {
         self.n
     }
@@ -179,6 +182,16 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> List<T> for SkipListList<T> {
 mod skip_list_list_test {
     use super::*;
     use std::{cell::RefCell, rc::Rc};
+    #[test]
+    fn set_test() {
+        let mut list = SkipListList::new();
+        list.add(0, 0);
+        list.add(1, 1);
+        list.add(2, 2);
+        assert_eq!(list.get(2), Some(2));
+        list.set(2, 3);
+        assert_eq!(list.get(2), Some(3));
+    }
 
     #[test]
     fn get_test() {
