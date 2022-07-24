@@ -1,5 +1,6 @@
 use std::{fmt::Debug, ops::Div};
 
+#[derive(Debug)]
 pub struct HashGen {
     z: usize,
     w: u32,

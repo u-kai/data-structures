@@ -26,11 +26,26 @@ impl<T: Debug + Clone + Default> ArrayStack<T> {
         let v = vec![Default::default(); len];
         ArrayStack {
             array: v.into_boxed_slice(),
-            n: 0,
+            n: len,
+        }
+    }
+    pub fn new_with_default(len: usize) -> Self {
+        let v: Vec<T> = vec![Default::default(); len];
+        let v = v.into_iter().map(|d| Some(d)).collect::<Vec<_>>();
+        ArrayStack {
+            array: v.into_boxed_slice(),
+            n: len,
         }
     }
     pub fn size(&self) -> usize {
         self.n
+    }
+    pub fn set(&mut self, i: usize, x: T) {
+        if let Some(_) = self.get(i) {
+            self.array[i] = Some(x);
+        } else {
+            self.add(i, x)
+        }
     }
     pub fn get(&self, i: usize) -> Option<T> {
         self.array.get(i).unwrap().clone()
@@ -96,6 +111,22 @@ mod array_stack_test {
             ArrayStack {
                 n: 1,
                 array: Box::new([Some("world"), None])
+            }
+        )
+    }
+    #[test]
+    fn set_test() {
+        let mut array_stack = ArrayStack::new();
+        array_stack.add(0, "good");
+        array_stack.add(1, "bye");
+        array_stack.add(2, "hello");
+        array_stack.add(3, "warld");
+        array_stack.set(3, "world");
+        assert_eq!(
+            array_stack,
+            ArrayStack {
+                n: 4,
+                array: Box::new([Some("good"), Some("bye"), Some("hello"), Some("world")])
             }
         )
     }
