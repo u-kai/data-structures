@@ -1,11 +1,16 @@
 use std::fmt::Debug;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct ArrayStack<T: Debug + Clone + Default> {
     array: Box<[Option<T>]>,
     n: usize,
 }
-
+impl<T: Debug + Clone + Default> Iterator for ArrayStack<T> {
+    type Item = Option<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.array.iter().map(|node| node.clone()).next()
+    }
+}
 impl<T: Debug + Clone + Default> ArrayStack<T> {
     pub fn new() -> Self {
         ArrayStack {
@@ -15,6 +20,9 @@ impl<T: Debug + Clone + Default> ArrayStack<T> {
     }
     pub fn size(&self) -> usize {
         self.n
+    }
+    pub fn get(&self, i: usize) -> Option<T> {
+        self.array.get(i).unwrap().clone()
     }
     pub fn add(&mut self, i: usize, x: T) {
         if (self.n + 1) > self.array.len() {
