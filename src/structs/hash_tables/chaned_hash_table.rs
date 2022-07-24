@@ -3,15 +3,16 @@ use std::{fmt::Debug, hash::Hash, ops::Div};
 use crate::{interfaces::uset::USet, structs::arrays::array_stack::ArrayStack};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ChanedHashTable<T: Clone + Hash + Eq + PartialEq + Debug + Default> {
+pub struct ChanedHashTable<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> {
     array: Box<[Option<ArrayStack<T>>]>,
     n: usize,
 }
 
-impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> ChanedHashTable<T> {
+impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> ChanedHashTable<T> {
     pub fn new() -> Self {
+        let v = vec![None; 2_i32.pow(Self::d() as u32) as usize];
         Self {
-            array: Box::new([]),
+            array: v.into_boxed_slice(),
             n: 0,
         }
     }
@@ -38,7 +39,14 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> ChanedHashTable<T> {
             .div(2_i32.pow((Self::w() - Self::d()) as u32) as usize)
     }
     fn hash(x: T) -> usize {
-        0
+        let str = x.to_string();
+        match str.parse::<usize>() {
+            Ok(num) => Self::hash_u(num),
+            Err(_) => {
+                let bytes = str.bytes().len();
+                Self::hash_u(bytes)
+            }
+        }
     }
     fn set(&mut self, i: usize, x: T) {
         if let Some(array) = self.array.get_mut(i).unwrap() {
@@ -52,7 +60,7 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> ChanedHashTable<T> {
     }
 }
 
-impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> USet<T> for ChanedHashTable<T> {
+impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> USet<T> for ChanedHashTable<T> {
     fn add(&mut self, x: T) -> bool {
         if self.find(x.clone()) {
             return false;
@@ -131,7 +139,7 @@ mod chaned_hash_table_test {
     use super::*;
     #[test]
     fn hash_test() {
-        assert_eq!(ChanedHashTable::<i32>::hash_u(42), 30)
+        assert_eq!(ChanedHashTable::<i32>::hash(42), 30);
     }
 
     #[test]
