@@ -56,6 +56,14 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> Node<T> {
         }
     }
 }
+impl<T: Clone + Debug + Default + PartialEq + Eq> Drop for Node<T> {
+    fn drop(&mut self) {
+        println!(
+            "drop node.x = {:?} node.lengths = {:?} node.heights = {:?}",
+            self.x, self.lengths, self.height
+        )
+    }
+}
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct SkipListList<T: Clone + Debug + Default + PartialEq + Eq> {
     sentinel: Rc<RefCell<Node<T>>>,
@@ -136,11 +144,20 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> SkipListList<T> {
         self.n += 1;
     }
     fn change_height(&mut self, h: usize) {
-        let diff = h - self.height();
-        self.sentinel.borrow_mut().height = h;
-        for _ in 0..diff {
-            self.sentinel.borrow_mut().set_length(h, 0);
-            self.sentinel.borrow_mut().set_next(h, None);
+        if h > self.height() {
+            let diff = h - self.height();
+            self.sentinel.borrow_mut().height = h;
+            for _ in 0..diff {
+                self.sentinel.borrow_mut().set_length(h, 0);
+                self.sentinel.borrow_mut().set_next(h, None);
+            }
+        } else {
+            let diff = self.height() - h;
+            self.sentinel.borrow_mut().height = h;
+            for _ in 0..diff {
+                self.sentinel.borrow_mut().lengths.pop();
+                self.sentinel.borrow_mut().nexts.pop();
+            }
         }
     }
     fn gen_height(&self) -> usize {
@@ -167,8 +184,74 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> List<T> for SkipListList<T> {
         result.map(|node| node.borrow().x.clone())
     }
     fn remove(&mut self, i: usize) -> Option<T> {
-        None
+        if i >= self.n {
+            return None;
+        }
+        let mut prev_node = self.sentinel.clone();
+        let mut h = self.height() as isize;
+        let mut prev_node_index = -1;
+        let mut result = None;
+        while h >= 0 {
+            loop {
+                let next = prev_node.borrow().get_next(h as usize);
+                let to_next_len = prev_node.borrow().get_length(h as usize) as isize;
+                if next.is_some() {
+                    if prev_node_index + to_next_len < i as isize {
+                        prev_node_index += to_next_len;
+                        prev_node = next.unwrap();
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            let to_next_len = prev_node.borrow().get_length(h as usize) as isize;
+            let is_next_over_removed = (i as isize) < (prev_node_index + to_next_len);
+            if is_next_over_removed {
+                let new_len = prev_node.borrow().get_length(h as usize) - 1;
+                prev_node.borrow_mut().set_length(h as usize, new_len);
+            }
+            if (prev_node_index + (prev_node.borrow().get_length(h as usize) as isize))
+                == i as isize
+                && prev_node.borrow().get_next(h as usize).is_some()
+            {
+                let x = prev_node
+                    .borrow()
+                    .get_next(h as usize)
+                    .unwrap()
+                    .borrow()
+                    .x
+                    .clone();
+                result = Some(x);
+                let new_len = prev_node.borrow().get_length(h as usize)
+                    + prev_node
+                        .borrow()
+                        .get_next(h as usize)
+                        .unwrap()
+                        .borrow()
+                        .get_length(h as usize);
+                prev_node.borrow_mut().set_length(h as usize, new_len);
+                let next_next = prev_node
+                    .borrow()
+                    .get_next(h as usize)
+                    .unwrap()
+                    .borrow()
+                    .get_next(h as usize)
+                    .clone();
+                prev_node.borrow_mut().set_next(h as usize, next_next);
+                if prev_node == self.sentinel && prev_node.borrow().get_next(h as usize).is_none() {
+                    self.change_height(self.height() - 1);
+                }
+            }
+            h -= 1;
+        }
+        if result.is_some() {
+            self.n -= 1;
+        }
+        result
     }
+
     fn set(&mut self, i: usize, x: T) -> () {
         let change_node = self.find_pred(i).borrow().get_next(0);
         change_node.map(|node| node.borrow_mut().x = x);
@@ -182,6 +265,19 @@ impl<T: Clone + Debug + Default + PartialEq + Eq> List<T> for SkipListList<T> {
 mod skip_list_list_test {
     use super::*;
     use std::{cell::RefCell, rc::Rc};
+    #[test]
+    fn remove_test() {
+        let mut list = SkipListList::new();
+        list.add(0, 0);
+        list.add(1, 1);
+        list.add(2, 2);
+        assert_eq!(list.remove(1), Some(1));
+        assert_eq!(list.remove(2), None);
+        assert_eq!(list.remove(1), Some(2));
+        list.add(1, 1);
+        list.add(2, 3);
+        assert_eq!(list.remove(2), Some(3));
+    }
     #[test]
     fn set_test() {
         let mut list = SkipListList::new();
