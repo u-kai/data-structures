@@ -12,6 +12,7 @@ pub struct DLList<T: Default + Clone + Debug + Eq + PartialEq> {
 }
 
 impl<T: Clone + Debug + Eq + PartialEq + Default> DLList<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let head = NodeWrapper::new(Default::default());
         let tail = NodeWrapper::new(Default::default());

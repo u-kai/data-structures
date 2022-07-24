@@ -9,6 +9,7 @@ pub struct ChanedHashTable<T: Clone + Hash + Eq + PartialEq + Debug + Default + 
 }
 
 impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> ChanedHashTable<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let v = vec![None; 2_i32.pow(Self::d() as u32) as usize];
         Self {
@@ -151,7 +152,7 @@ mod chaned_hash_table_test {
         hash_table.add(3);
         hash_table.add(4);
         hash_table.add(5);
-        println!("{:?}", hash_table);
+        println!("{:#?}", hash_table);
         assert_eq!(hash_table.remove(5), Some(5));
         assert_eq!(hash_table.find(0), true);
         assert_eq!(hash_table.find(1), true);

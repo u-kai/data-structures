@@ -49,6 +49,7 @@ pub struct SkipListSSet<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd
 }
 
 impl<T: Clone + Debug + PartialEq + Eq + Default + PartialOrd + Ord> SkipListSSet<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let sentinel = Rc::new(RefCell::new(Node::new(Default::default(), 0)));
         Self { n: 0, sentinel }
@@ -276,7 +277,6 @@ mod skip_list_sset_test {
     }
     #[test]
     fn remove_test() {
-        println!("remove_test");
         let mut list = SkipListSSet::new();
         list.add_base(0, 0);
         assert_eq!(list.remove(0), Some(0));

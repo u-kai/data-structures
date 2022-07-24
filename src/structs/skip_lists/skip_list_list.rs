@@ -70,6 +70,7 @@ pub struct SkipListList<T: Clone + Debug + Default + PartialEq + Eq> {
     n: usize,
 }
 impl<T: Clone + Debug + Default + PartialEq + Eq> SkipListList<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let sentinel = Rc::new(RefCell::new(Node::new(Default::default(), 0)));
         Self { sentinel, n: 0 }
@@ -346,17 +347,4 @@ mod skip_list_list_test {
         sentinel.borrow_mut().set_next(4, Some(three_node.clone()));
         assert_eq!(list, SkipListList { n: 5, sentinel })
     }
-    //#[test]
-    //fn find_pred_test() {
-    //let mut sentinel = Node::new(0, 1);
-    //let zero_node = Rc::new(RefCell::new(Node::new(0, 0)));
-    //let one_node = Rc::new(RefCell::new(Node::new(1, 1)));
-
-    //let list = SkipListList {
-    //sentinel: Rc::new(RefCell::new(sentinel)),
-    //n: 2,
-    //};
-    //assert_eq!(list.find(0), Some(0));
-    //assert_eq!(list.find(1), Some(1));
-    //}
 }

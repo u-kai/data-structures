@@ -8,6 +8,7 @@ struct ArrayQueue<T: Clone + Debug + Default> {
 }
 
 impl<T: Clone + Debug + Default> ArrayQueue<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let data = vec![];
         ArrayQueue {
@@ -16,6 +17,7 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
             array: data.into_boxed_slice(),
         }
     }
+    #[allow(unused)]
     pub fn add(&mut self, x: T) {
         if (self.n + 1) > self.array.len() {
             self.resize()
@@ -26,6 +28,7 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
             .unwrap() = Some(x);
         self.n += 1;
     }
+    #[allow(unused)]
     pub fn remove(&mut self) -> Option<T> {
         if self.is_bound(1) {
             return None;
@@ -38,6 +41,7 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
         }
         x
     }
+    #[allow(unused)]
     pub fn resize(&mut self) {
         let new_array = vec![Default::default(); (self.n * 2).max(1)];
         let mut old_array = std::mem::replace(&mut self.array, new_array.into_boxed_slice());
@@ -47,6 +51,7 @@ impl<T: Clone + Debug + Default> ArrayQueue<T> {
         }
         self.j = 0;
     }
+    #[allow(unused)]
     fn is_bound(&self, i: usize) -> bool {
         i > self.n || i > self.array.len()
     }

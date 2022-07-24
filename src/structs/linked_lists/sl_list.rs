@@ -12,6 +12,7 @@ pub struct SLList<T: Clone + Debug + Eq + PartialEq> {
     head: Option<StrongLink<Node<T>>>,
 }
 impl<T: Clone + Debug + Eq + PartialEq> SLList<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         SLList {
             n: 0,
@@ -19,6 +20,7 @@ impl<T: Clone + Debug + Eq + PartialEq> SLList<T> {
             head: None,
         }
     }
+    #[allow(unused)]
     pub fn new_with(xs: Vec<T>) -> Self {
         let mut sl_list = SLList::new();
         for x in xs {
@@ -26,6 +28,7 @@ impl<T: Clone + Debug + Eq + PartialEq> SLList<T> {
         }
         sl_list
     }
+    #[allow(unused)]
     pub fn size(&self) -> usize {
         self.n
     }

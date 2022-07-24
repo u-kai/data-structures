@@ -7,6 +7,7 @@ pub struct ArrayDeque<T: Clone + Default + Debug> {
 }
 
 impl<T: Clone + Default + Debug> ArrayDeque<T> {
+    #[allow(unused)]
     pub fn new() -> Self {
         let array = vec![];
         ArrayDeque {
@@ -15,6 +16,7 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
             j: 0,
         }
     }
+    #[allow(unused)]
     pub fn get(&self, i: usize) -> Option<T> {
         if i > self.n || i > self.array.len() {
             return None;
@@ -24,6 +26,7 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
             .as_ref()
             .cloned()
     }
+    #[allow(unused)]
     pub fn set(&mut self, i: usize, x: T) {
         let index = (self.j + i) % self.array.len();
         let maybe = self.array.get(index);
@@ -31,6 +34,7 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
             *self.array.get_mut(index).unwrap() = Some(x)
         }
     }
+    #[allow(unused)]
     pub fn add(&mut self, i: usize, x: T) {
         if (self.n + 1) > self.array.len() {
             self.resize()
@@ -58,6 +62,7 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
         self.array[(self.j + i) % self.array.len()] = Some(x);
         self.n += 1;
     }
+    #[allow(unused)]
     pub fn remove(&mut self, i: usize) -> Option<T> {
         if self.is_bound(i) {
             return None;
@@ -86,6 +91,7 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
         self.j = 0;
         x
     }
+    #[allow(unused)]
     fn resize(&mut self) {
         let new_array = vec![Default::default(); (self.n * 2).max(1)];
         let mut old_array = std::mem::replace(&mut self.array, new_array.into_boxed_slice());
@@ -94,11 +100,13 @@ impl<T: Clone + Default + Debug> ArrayDeque<T> {
             self.array[i] = old_array[(i + self.j) % len].take();
         }
     }
+    #[allow(unused)]
     fn is_bound(&self, i: usize) -> bool {
         i > self.n || i > self.array.len()
     }
 }
 
+#[cfg(test)]
 mod array_deque_test {
     use super::*;
     #[test]
