@@ -22,6 +22,13 @@ impl<T: Debug + Clone + Default> ArrayStack<T> {
             n: 0,
         }
     }
+    pub fn new_with_len(len: usize) -> Self {
+        let v = vec![Default::default(); len];
+        ArrayStack {
+            array: v.into_boxed_slice(),
+            n: 0,
+        }
+    }
     pub fn size(&self) -> usize {
         self.n
     }

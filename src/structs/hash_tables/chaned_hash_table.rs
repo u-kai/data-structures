@@ -1,14 +1,16 @@
-use std::{fmt::Debug, hash::Hash, ops::Div};
+use std::fmt::Debug;
 
 use crate::{interfaces::uset::USet, structs::arrays::array_stack::ArrayStack};
 
+use super::hash_gen::HashGen;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ChanedHashTable<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> {
+pub struct ChanedHashTable<T: Clone + Eq + PartialEq + Debug + Default + ToString> {
     array: Box<[Option<ArrayStack<T>>]>,
     n: usize,
 }
 
-impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> ChanedHashTable<T> {
+impl<T: Clone + Eq + PartialEq + Debug + Default + ToString> ChanedHashTable<T> {
     #[allow(unused)]
     pub fn new() -> Self {
         let v = vec![None; 2_i32.pow(Self::d() as u32) as usize];
@@ -35,20 +37,6 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> ChanedHashTa
         }
         self.array = new_array
     }
-    fn hash_u(x: usize) -> usize {
-        ((Self::z() * x) % (2_i64.pow(Self::w() as u32) as usize))
-            .div(2_i32.pow((Self::w() - Self::d()) as u32) as usize)
-    }
-    fn hash(x: T) -> usize {
-        let str = x.to_string();
-        match str.parse::<usize>() {
-            Ok(num) => Self::hash_u(num),
-            Err(_) => {
-                let bytes = str.bytes().len();
-                Self::hash_u(bytes)
-            }
-        }
-    }
     fn set(&mut self, i: usize, x: T) {
         if let Some(array) = self.array.get_mut(i).unwrap() {
             let len = array.size();
@@ -59,9 +47,13 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> ChanedHashTa
             *self.array.get_mut(i).unwrap() = Some(array)
         }
     }
+    fn hash(x: T) -> usize {
+        let hash_gen = HashGen::new(Self::z(), Self::w() as u32, Self::d() as u32);
+        hash_gen.hash(x)
+    }
 }
 
-impl<T: Clone + Hash + Eq + PartialEq + Debug + Default + ToString> USet<T> for ChanedHashTable<T> {
+impl<T: Clone + Eq + PartialEq + Debug + Default + ToString> USet<T> for ChanedHashTable<T> {
     fn add(&mut self, x: T) -> bool {
         if self.find(x.clone()) {
             return false;
