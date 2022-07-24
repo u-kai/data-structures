@@ -1,4 +1,4 @@
-use std::{fmt::Debug, hash::Hash};
+use std::{fmt::Debug, hash::Hash, ops::Div};
 
 use crate::{interfaces::uset::USet, structs::arrays::array_stack::ArrayStack};
 
@@ -15,6 +15,15 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> ChanedHashTable<T> {
             n: 0,
         }
     }
+    fn w() -> usize {
+        32
+    }
+    fn d() -> usize {
+        8
+    }
+    fn z() -> usize {
+        4102541685
+    }
     fn resize(&mut self) {
         let expand_array_len = (self.n * 2).max(1);
         let v = vec![None; expand_array_len];
@@ -23,6 +32,10 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> ChanedHashTable<T> {
             new_array[i] = self.array[i].take();
         }
         self.array = new_array
+    }
+    fn hash_u(x: usize) -> usize {
+        ((Self::z() * x) % (2_i64.pow(Self::w() as u32) as usize))
+            .div(2_i32.pow((Self::w() - Self::d()) as u32) as usize)
     }
     fn hash(x: T) -> usize {
         0
@@ -116,6 +129,10 @@ impl<T: Clone + Hash + Eq + PartialEq + Debug + Default> USet<T> for ChanedHashT
 mod chaned_hash_table_test {
 
     use super::*;
+    #[test]
+    fn hash_test() {
+        assert_eq!(ChanedHashTable::<i32>::hash_u(42), 30)
+    }
 
     #[test]
     fn test() {

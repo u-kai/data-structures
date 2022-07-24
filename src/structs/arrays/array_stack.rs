@@ -6,9 +6,13 @@ pub struct ArrayStack<T: Debug + Clone + Default> {
     n: usize,
 }
 impl<T: Debug + Clone + Default> Iterator for ArrayStack<T> {
-    type Item = Option<T>;
+    type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        self.array.iter().map(|node| node.clone()).next()
+        if let Some(next) = self.remove(0) {
+            Some(next)
+        } else {
+            None
+        }
     }
 }
 impl<T: Debug + Clone + Default> ArrayStack<T> {
@@ -35,7 +39,13 @@ impl<T: Debug + Clone + Default> ArrayStack<T> {
         self.n += 1;
     }
     pub fn remove(&mut self, i: usize) -> Option<T> {
+        if self.array.get(i).is_none() {
+            return None;
+        }
         let x = self.array[i].take();
+        if x.is_none() {
+            return None;
+        }
         for j in i..(self.n - 1) {
             self.array.swap(j, j + 1);
         }
@@ -59,6 +69,15 @@ impl<T: Debug + Clone + Default> ArrayStack<T> {
 
 mod array_stack_test {
     use super::*;
+    #[test]
+    fn iter_test() {
+        let mut array_stack = ArrayStack::new();
+        array_stack.add(0, "world");
+        array_stack.add(0, "hello");
+        assert_eq!(array_stack.next(), Some("hello"));
+        assert_eq!(array_stack.next(), Some("world"));
+        assert_eq!(array_stack.next(), None);
+    }
     #[test]
     fn remove_test() {
         let mut array_stack = ArrayStack::new();
