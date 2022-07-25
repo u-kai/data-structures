@@ -58,18 +58,14 @@ impl<T: Clone + Debug + Eq + PartialEq + Default + ToString> LinerHashTable<T> {
 }
 impl<T: Clone + Debug + Eq + PartialEq + Default + ToString> USet<T> for LinerHashTable<T> {
     fn add(&mut self, x: T) -> bool {
-        println!("x = {:?}", x);
         if self.find(x.clone()) {
             return false;
         }
-        println!("end find ");
         if 2 * (self.q + 1) > self.array.size() {
             self.resize()
         }
-        println!("end find ");
         let mut i = self.hashgen.hash(x.clone());
         if let Some(mut data) = self.array.get(i) {
-            println!("data = {:#?}", data);
             loop {
                 match data {
                     DataState::Exist(_) => {
@@ -90,9 +86,7 @@ impl<T: Clone + Debug + Eq + PartialEq + Default + ToString> USet<T> for LinerHa
                         return true;
                     }
                     DataState::Null => {
-                        println!("data = {:#?}", data);
                         self.array.set(i, DataState::Exist(x.clone()));
-                        println!("array = {:?}", self.array);
                         self.n += 1;
                         self.q += 1;
                         return true;
@@ -142,6 +136,43 @@ impl<T: Clone + Debug + Eq + PartialEq + Default + ToString> USet<T> for LinerHa
         false
     }
     fn remove(&mut self, x: T) -> Option<T> {
+        let mut i = self.hashgen.hash(x.clone());
+        if let Some(mut data) = self.array.get(i) {
+            loop {
+                match &data {
+                    DataState::Null => return None,
+                    DataState::Del => {
+                        i = if i == (self.array.size() - 1) {
+                            0
+                        } else {
+                            i + 1
+                        };
+                        if let Some(new_data) = self.array.get(i) {
+                            data = new_data
+                        } else {
+                            return None;
+                        }
+                    }
+                    DataState::Exist(y) => {
+                        if y == &x {
+                            self.array.set(i, DataState::Del);
+                            self.n -= 1;
+                            return Some(x);
+                        }
+                        i = if i == (self.array.size() - 1) {
+                            0
+                        } else {
+                            i + 1
+                        };
+                        if let Some(new_data) = self.array.get(i) {
+                            data = new_data
+                        } else {
+                            return None;
+                        }
+                    }
+                }
+            }
+        }
         None
     }
     fn size(&self) -> usize {
@@ -167,5 +198,7 @@ mod liner_hash_table_test {
         liner_hash_table.add(7);
         assert!(liner_hash_table.find(7));
         assert!(!liner_hash_table.find(8));
+        assert_eq!(liner_hash_table.remove(1), Some(1));
+        assert_eq!(liner_hash_table.remove(10), None);
     }
 }
