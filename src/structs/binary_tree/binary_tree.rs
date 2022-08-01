@@ -3,6 +3,7 @@ use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
     rc::{Rc, Weak},
+    string::ParseError,
 };
 
 #[derive(Debug, Clone)]
@@ -22,6 +23,33 @@ struct WrapNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord>(Rc<RefCell
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     fn new(value: T) -> Self {
         Self(Rc::new(RefCell::new(BTNode::new(value))))
+    }
+    fn has_child(&self) -> bool {
+        self.borrow().left.is_some() || self.borrow().right.is_some()
+    }
+    fn parent(&self) -> Option<Self> {
+        if let Some(parent) = &self.borrow().parent {
+            let parent = parent.upgrade().as_ref().unwrap().clone();
+            Some(WrapNode(parent))
+        } else {
+            None
+        }
+    }
+    fn left(&self) -> Option<Self> {
+        if let Some(left) = self.borrow().left.as_ref() {
+            let left = left.to_node().clone();
+            Some(WrapNode(left))
+        } else {
+            None
+        }
+    }
+    fn right(&self) -> Option<Self> {
+        if let Some(right) = self.borrow().right.as_ref() {
+            let right = right.to_node().clone();
+            Some(WrapNode(right))
+        } else {
+            None
+        }
     }
     fn from_node(node: Rc<RefCell<BTNode<T>>>) -> Self {
         Self(node)
@@ -47,6 +75,11 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Deref for WrapNode<T>
     type Target = Rc<RefCell<BTNode<T>>>;
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> PartialEq for WrapNode<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.borrow().value == other.borrow().value
     }
 }
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> DerefMut for WrapNode<T> {
@@ -76,58 +109,81 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
             root: WrapNode::new(root),
         }
     }
+    pub fn remove(&mut self, value: T) -> Option<T> {
+        let remove_node = self.find_node(value);
+        if remove_node.is_none() {
+            return None;
+        }
+        let remove_node = remove_node.unwrap();
+        //case remove_node is leaf
+        if !remove_node.has_child() {
+            let parent = remove_node
+                .borrow()
+                .parent
+                .as_ref()
+                .unwrap()
+                .upgrade()
+                .as_ref()
+                .unwrap();
+        }
+
+        None
+    }
+    fn split(&mut self, node: WrapNode<T>) {
+        let left = node.borrow().left.as_ref().map(|left| left.to_node());
+        let right = node.borrow().right.as_ref().map(|right| right.to_node());
+        let parent = node
+            .borrow()
+            .parent
+            .as_ref()
+            .map(|parent| parent.upgrade().unwrap().clone());
+        let mut s = None;
+        let mut p = None;
+        if left.is_none() {
+            s = left;
+        } else {
+            s = right;
+        }
+        let node_value = node.0.borrow().value.clone();
+        let root_value = self.root.0.borrow().value.clone();
+        if root_value == node_value {
+            *self.root = s.unwrap();
+            p = None;
+        } else {
+            p = parent;
+            let p_left = p.unwrap();
+            if p_left == node.to_node() {
+                //parent.unwrap().borrow_mut().left = s.unwrap();
+            }
+        }
+    }
     pub fn depth(&self, value: T) -> Option<usize> {
         let mut last = self.find_last(value.clone());
         let mut depth = 0;
-        if last.is_some() {
-            if last.as_ref().unwrap().borrow().value == value {
-                while last.is_some() {
-                    let parent = if last.as_ref().unwrap().borrow().parent.is_some() {
-                        last.as_ref()
-                            .unwrap()
-                            .borrow()
-                            .parent
-                            .as_ref()
-                            .unwrap()
-                            .upgrade()
-                    } else {
-                        return Some(depth);
-                    };
-                    last = Some(WrapNode(parent.unwrap()));
+        if last.is_none() {
+            return None;
+        };
+        if last.as_ref().unwrap().borrow().value == value {
+            while last.is_some() {
+                if let Some(parent) = last.unwrap().parent() {
+                    last = Some(parent);
                     depth += 1;
-                }
+                } else {
+                    return Some(depth);
+                };
             }
-            return Some(depth);
         }
-        None
+        return Some(depth);
     }
     pub fn size(&self) -> usize {
-        let mut node = Some(self.root.to_node());
+        let mut node = Some(WrapNode::from_node(self.root.to_node()));
         let mut prev = None;
         let mut next = None;
         let mut n = 0;
         while node.is_some() {
-            let parent = node
-                .as_ref()
-                .unwrap()
-                .borrow()
-                .parent
-                .as_ref()
-                .map(|parent| parent.upgrade().clone().unwrap());
-            let left = node
-                .as_ref()
-                .unwrap()
-                .borrow()
-                .left
-                .as_ref()
-                .map(|node| node.to_node());
-            let right = node
-                .as_ref()
-                .unwrap()
-                .borrow()
-                .right
-                .as_ref()
-                .map(|node| node.to_node());
+            let parent = node.as_ref().unwrap().parent();
+            let left = node.as_ref().unwrap().left();
+            let right = node.as_ref().unwrap().right();
             if parent == prev {
                 n += 1;
                 if node.as_ref().unwrap().borrow().left.is_some() {
@@ -150,6 +206,22 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
             node = next;
         }
         n
+    }
+    fn find_node(&self, value: T) -> Option<WrapNode<T>> {
+        let mut node = Some(self.root.clone());
+        while node.is_some() {
+            if node.as_ref().unwrap().borrow().value > value {
+                let new_node = node.as_ref().unwrap().borrow().left.clone();
+                node = new_node;
+            } else if node.as_ref().unwrap().borrow().value < value {
+                let new_node = node.as_ref().unwrap().borrow().right.clone();
+                node = new_node;
+            } else if node.as_ref().unwrap().borrow().value == value {
+                let node = node.as_ref().unwrap().to_node();
+                return Some(WrapNode::from_node(node.clone()));
+            }
+        }
+        None
     }
     pub fn find(&self, value: T) -> bool {
         let mut node = Some(self.root.clone());
@@ -274,5 +346,21 @@ mod binary_tree_test {
         tree.add(3);
         tree.add(3);
         assert_eq!(tree.size(), 7);
+    }
+    #[test]
+    fn remove_test() {
+        let mut tree = BinaryTree::new(0);
+        tree.add(-2);
+        tree.add(-3);
+        tree.add(-1);
+        tree.add(2);
+        tree.add(1);
+        tree.add(3);
+        tree.add(3);
+        tree.add(3);
+        //assert_eq!(tree.remove(-2), Some(-2));
+        //assert_eq!(tree.remove(-3), Some(-3));
+        //assert_eq!(tree.remove(0), Some(0));
+        assert_eq!(tree.remove(-5), None);
     }
 }
