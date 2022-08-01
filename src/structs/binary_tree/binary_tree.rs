@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    env::remove_var,
     fmt::Debug,
     ops::{Deref, DerefMut},
     rc::{Rc, Weak},
@@ -111,6 +112,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
     }
     pub fn remove(&mut self, value: T) -> Option<T> {
         let remove_node = self.find_node(value.clone());
+        let result = Some(value.clone());
         if remove_node.is_none() {
             return None;
         }
@@ -122,17 +124,52 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
                 if let Some(left) = parent.left() {
                     if left.borrow().value == value {
                         parent.borrow_mut().left = None;
-                        return Some(value.clone());
+                        return result;
                     }
                 }
                 if let Some(right) = parent.right() {
                     if right.borrow().value == value {
                         parent.borrow_mut().right = None;
-                        return Some(value.clone());
+                        return result;
                     }
                 }
             } else {
                 return None;
+            }
+        }
+        // case remove_node has one child
+        if let (Some(new_child), None) = (remove_node.left(), remove_node.right()) {
+            let parent = remove_node.parent();
+            if let Some(parent) = parent {
+                if let Some(parent_left) = parent.left() {
+                    if parent_left.borrow().value == value {
+                        parent.borrow_mut().left = Some(new_child);
+                        return result;
+                    }
+                }
+                if let Some(parent_right) = parent.right() {
+                    if parent_right.borrow().value == value {
+                        parent.borrow_mut().right = Some(new_child);
+                        return result;
+                    }
+                }
+            }
+        }
+        if let (None, Some(new_child)) = (remove_node.left(), remove_node.right()) {
+            let parent = remove_node.parent();
+            if let Some(parent) = parent {
+                if let Some(parent_left) = parent.left() {
+                    if parent_left.borrow().value == value {
+                        parent.borrow_mut().left = Some(new_child);
+                        return result;
+                    }
+                }
+                if let Some(parent_right) = parent.right() {
+                    if parent_right.borrow().value == value {
+                        parent.borrow_mut().right = Some(new_child);
+                        return result;
+                    }
+                }
             }
         }
         None
@@ -261,6 +298,8 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
 
 #[cfg(test)]
 mod binary_tree_test {
+    use std::fs::set_permissions;
+
     use super::*;
 
     #[test]
@@ -355,8 +394,12 @@ mod binary_tree_test {
         tree.add(3);
         tree.add(3);
         assert_eq!(tree.remove(3), Some(3));
-        //assert_eq!(tree.remove(-3), Some(-3));
+        assert_eq!(tree.remove(1), Some(1));
+        assert_eq!(tree.remove(2), Some(2));
+        println!("{:#?}", tree);
+        assert!(false);
+
         //assert_eq!(tree.remove(0), Some(0));
-        assert_eq!(tree.remove(-5), None);
+        //assert_eq!(tree.remove(-5), None);
     }
 }
