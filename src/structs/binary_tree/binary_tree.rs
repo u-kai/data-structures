@@ -1,10 +1,8 @@
 use std::{
     cell::RefCell,
-    env::remove_var,
     fmt::Debug,
     ops::{Deref, DerefMut},
     rc::{Rc, Weak},
-    string::ParseError,
 };
 
 #[derive(Debug, Clone)]
@@ -14,12 +12,31 @@ struct BTNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> {
     right: Option<WrapNode<T>>,
     parent: Option<Weak<RefCell<BTNode<T>>>>,
 }
-impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> PartialEq for BTNode<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Drop for BTNode<T> {
+    fn drop(&mut self) {
+        println!("node {:?} is droped", self.value)
     }
 }
-#[derive(Debug, Clone)]
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> PartialEq for BTNode<T> {
+    fn eq(&self, other: &Self) -> bool {
+        if let (Some(parent), Some(other_parent)) = (self.parent.as_ref(), other.parent.as_ref()) {
+            let parent_value = &parent.upgrade();
+            let parent_value = &parent_value.as_ref().unwrap().borrow().value;
+            let other_parent_value = &other_parent.upgrade();
+            let other_parent_value = &other_parent_value.as_ref().unwrap().borrow().value;
+            return parent_value == other_parent_value
+                && self.value == other.value
+                && self.left == other.left
+                && self.right == other.right;
+        }
+        self.value == other.value && self.left == other.left && self.right == other.right
+    }
+}
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Eq for BTNode<T> {
+    fn assert_receiver_is_total_eq(&self) {}
+}
+
+#[derive(Debug, Clone, Eq)]
 struct WrapNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord>(Rc<RefCell<BTNode<T>>>);
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     fn new(value: T) -> Self {
@@ -99,7 +116,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BTNode<T> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinaryTree<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> {
     root: WrapNode<T>,
 }
@@ -133,11 +150,9 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
                         return result;
                     }
                 }
-            } else {
-                return None;
             }
         }
-        // case remove_node has one child
+        // case remove_node has left child
         if let (Some(new_child), None) = (remove_node.left(), remove_node.right()) {
             let parent = remove_node.parent();
             if let Some(parent) = parent {
@@ -155,6 +170,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
                 }
             }
         }
+        // case remove_node has right child
         if let (None, Some(new_child)) = (remove_node.left(), remove_node.right()) {
             let parent = remove_node.parent();
             if let Some(parent) = parent {
@@ -172,35 +188,62 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
                 }
             }
         }
-        None
-    }
-    fn split(&mut self, node: WrapNode<T>) {
-        let left = node.borrow().left.as_ref().map(|left| left.to_node());
-        let right = node.borrow().right.as_ref().map(|right| right.to_node());
-        let parent = node
-            .borrow()
-            .parent
-            .as_ref()
-            .map(|parent| parent.upgrade().unwrap().clone());
-        let mut s = None;
-        let mut p = None;
-        if left.is_none() {
-            s = left;
-        } else {
-            s = right;
-        }
-        let node_value = node.0.borrow().value.clone();
-        let root_value = self.root.0.borrow().value.clone();
-        if root_value == node_value {
-            *self.root = s.unwrap();
-            p = None;
-        } else {
-            p = parent;
-            let p_left = p.unwrap();
-            if p_left == node.to_node() {
-                //parent.unwrap().borrow_mut().left = s.unwrap();
+        //case remove_node has two child
+        if let (Some(remove_node_left), Some(remove_node_right)) =
+            (remove_node.left(), remove_node.right())
+        {
+            let mut new_child = Some(remove_node_right.clone());
+            while new_child.is_some() {
+                if let Some(left) = new_child.as_ref().unwrap().left() {
+                    new_child = Some(left);
+                } else {
+                    break;
+                }
+            }
+            if let Some(parent) = remove_node.parent() {
+                if let Some(parent_left) = parent.left() {
+                    if parent_left.borrow().value == value {
+                        let new_child_parent = new_child.as_ref().unwrap().parent().unwrap();
+                        new_child_parent.borrow_mut().left = None;
+                        parent_left.borrow_mut().left = None;
+                        parent_left.borrow_mut().right = None;
+                        parent.borrow_mut().right = Some(WrapNode::from_node(
+                            new_child.as_ref().unwrap().to_node().clone(),
+                        ));
+                        new_child.as_ref().unwrap().borrow_mut().parent =
+                            Some(Rc::downgrade(&parent));
+                        remove_node_left.as_ref().borrow_mut().parent =
+                            new_child.as_ref().map(|new| Rc::downgrade(new));
+                        remove_node_right.as_ref().borrow_mut().parent =
+                            new_child.as_ref().map(|new| Rc::downgrade(new));
+                        new_child.as_ref().unwrap().borrow_mut().left = Some(remove_node_left);
+                        new_child.as_ref().unwrap().borrow_mut().right = Some(remove_node_right);
+                        return result;
+                    }
+                }
+                if let Some(parent_right) = parent.right() {
+                    if parent_right.borrow().value == value {
+                        let new_child_parent = new_child.as_ref().unwrap().parent().unwrap();
+                        new_child_parent.borrow_mut().left = None;
+                        parent_right.borrow_mut().left = None;
+                        parent_right.borrow_mut().right = None;
+                        parent.borrow_mut().right = Some(WrapNode::from_node(
+                            new_child.as_ref().unwrap().to_node().clone(),
+                        ));
+                        new_child.as_ref().unwrap().borrow_mut().parent =
+                            Some(Rc::downgrade(&parent));
+                        remove_node_left.as_ref().borrow_mut().parent =
+                            new_child.as_ref().map(|new| Rc::downgrade(new));
+                        remove_node_right.as_ref().borrow_mut().parent =
+                            new_child.as_ref().map(|new| Rc::downgrade(new));
+                        new_child.as_ref().unwrap().borrow_mut().left = Some(remove_node_left);
+                        new_child.as_ref().unwrap().borrow_mut().right = Some(remove_node_right);
+                        return result;
+                    }
+                }
             }
         }
+        None
     }
     pub fn depth(&self, value: T) -> Option<usize> {
         let mut last = self.find_last(value.clone());
@@ -298,7 +341,6 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
 
 #[cfg(test)]
 mod binary_tree_test {
-    use std::fs::set_permissions;
 
     use super::*;
 
@@ -362,7 +404,6 @@ mod binary_tree_test {
         tree.add(2);
         tree.add(1);
         tree.add(3);
-        println!("{:#?}", tree);
         assert_eq!(tree.depth(0).unwrap(), 0);
         assert_eq!(tree.depth(-2).unwrap(), 1);
         assert_eq!(tree.depth(-3).unwrap(), 2);
@@ -384,22 +425,31 @@ mod binary_tree_test {
     }
     #[test]
     fn remove_test() {
-        let mut tree = BinaryTree::new(0);
-        tree.add(-2);
-        tree.add(-3);
-        tree.add(-1);
-        tree.add(2);
+        let mut tree = BinaryTree::new(7);
+        tree.add(3);
         tree.add(1);
-        tree.add(3);
-        tree.add(3);
-        tree.add(3);
-        assert_eq!(tree.remove(3), Some(3));
+        tree.add(5);
+        tree.add(4);
+        tree.add(6);
+        tree.add(11);
+        tree.add(9);
+        tree.add(8);
+        tree.add(13);
+        tree.add(12);
+        tree.add(14);
+        assert_eq!(tree.remove(11), Some(11));
+        let mut tobe = BinaryTree::new(7);
+        tobe.add(3);
+        tobe.add(1);
+        tobe.add(5);
+        tobe.add(4);
+        tobe.add(6);
+        tobe.add(12);
+        tobe.add(9);
+        tobe.add(8);
+        tobe.add(13);
+        tobe.add(14);
         assert_eq!(tree.remove(1), Some(1));
-        assert_eq!(tree.remove(2), Some(2));
-        println!("{:#?}", tree);
-        assert!(false);
-
-        //assert_eq!(tree.remove(0), Some(0));
-        //assert_eq!(tree.remove(-5), None);
+        assert_eq!(tree.remove(9), Some(9));
     }
 }
