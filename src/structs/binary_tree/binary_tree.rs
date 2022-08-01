@@ -110,23 +110,31 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
         }
     }
     pub fn remove(&mut self, value: T) -> Option<T> {
-        let remove_node = self.find_node(value);
+        let remove_node = self.find_node(value.clone());
         if remove_node.is_none() {
             return None;
         }
-        let remove_node = remove_node.unwrap();
+        let remove_node = remove_node.as_ref().unwrap();
         //case remove_node is leaf
         if !remove_node.has_child() {
-            let parent = remove_node
-                .borrow()
-                .parent
-                .as_ref()
-                .unwrap()
-                .upgrade()
-                .as_ref()
-                .unwrap();
+            let parent = remove_node.parent();
+            if let Some(parent) = parent {
+                if let Some(left) = parent.left() {
+                    if left.borrow().value == value {
+                        parent.borrow_mut().left = None;
+                        return Some(value.clone());
+                    }
+                }
+                if let Some(right) = parent.right() {
+                    if right.borrow().value == value {
+                        parent.borrow_mut().right = None;
+                        return Some(value.clone());
+                    }
+                }
+            } else {
+                return None;
+            }
         }
-
         None
     }
     fn split(&mut self, node: WrapNode<T>) {
@@ -208,13 +216,13 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
         n
     }
     fn find_node(&self, value: T) -> Option<WrapNode<T>> {
-        let mut node = Some(self.root.clone());
+        let mut node = Some(WrapNode::from_node(self.root.to_node()));
         while node.is_some() {
             if node.as_ref().unwrap().borrow().value > value {
-                let new_node = node.as_ref().unwrap().borrow().left.clone();
+                let new_node = node.as_ref().unwrap().left();
                 node = new_node;
             } else if node.as_ref().unwrap().borrow().value < value {
-                let new_node = node.as_ref().unwrap().borrow().right.clone();
+                let new_node = node.as_ref().unwrap().right();
                 node = new_node;
             } else if node.as_ref().unwrap().borrow().value == value {
                 let node = node.as_ref().unwrap().to_node();
@@ -224,22 +232,10 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
         None
     }
     pub fn find(&self, value: T) -> bool {
-        let mut node = Some(self.root.clone());
-        while node.is_some() {
-            if node.as_ref().unwrap().borrow().value > value {
-                let new_node = node.as_ref().unwrap().borrow().left.clone();
-                node = new_node;
-            } else if node.as_ref().unwrap().borrow().value < value {
-                let new_node = node.as_ref().unwrap().borrow().right.clone();
-                node = new_node;
-            } else if node.as_ref().unwrap().borrow().value == value {
-                return true;
-            }
-        }
-        false
+        self.find_node(value).is_some()
     }
     fn find_last(&self, value: T) -> Option<WrapNode<T>> {
-        let mut node = Some(self.root.clone());
+        let mut node = Some(WrapNode::from_node(self.root.to_node()));
         let mut prev = None;
         while node.is_some() {
             if node.as_ref().unwrap().borrow().value > value {
@@ -358,7 +354,7 @@ mod binary_tree_test {
         tree.add(3);
         tree.add(3);
         tree.add(3);
-        //assert_eq!(tree.remove(-2), Some(-2));
+        assert_eq!(tree.remove(3), Some(3));
         //assert_eq!(tree.remove(-3), Some(-3));
         //assert_eq!(tree.remove(0), Some(0));
         assert_eq!(tree.remove(-5), None);
