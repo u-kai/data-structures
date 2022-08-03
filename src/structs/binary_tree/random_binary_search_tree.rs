@@ -82,7 +82,7 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
 }
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq for WrapNode<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.borrow().value == other.borrow().value
+        self.0 == other.0
     }
 }
 
@@ -158,20 +158,22 @@ mod treap_tree_test {
     }
     #[test]
     fn rotation_test() {
-        let mut tobe_root = WrapNode::from_node(TreapNode {
+        // before rotation
+        let mut rotation_node = WrapNode::from_node(TreapNode {
             parent: None,
             left: None,
             right: None,
-            value: 1,
+            value: 3,
             p: 4,
         });
-        let three_99 = WrapNode::from_node(TreapNode {
+        let four_99 = WrapNode::from_node(TreapNode {
             parent: None,
-            left: Some(WrapNode::from_rc_node(tobe_root.0.clone())),
+            left: Some(WrapNode::from_rc_node(rotation_node.0.clone())),
             right: None,
-            value: 3,
+            value: 4,
             p: 99,
         });
+        rotation_node.0.borrow_mut().parent = Some(Rc::downgrade(&four_99));
         let one_9 = WrapNode::from_node(TreapNode {
             parent: None,
             left: None,
@@ -181,33 +183,46 @@ mod treap_tree_test {
         });
         let two_6 = WrapNode::from_node(TreapNode {
             parent: None,
-            left: Some(WrapNode::from_rc_node(three_99.0.clone())),
+            left: Some(WrapNode::from_rc_node(four_99.0.clone())),
             right: Some(WrapNode::from_rc_node(one_9.0.clone())),
             value: 2,
             p: 6,
         });
-
-        let after_two_6 = WrapNode::from_node(TreapNode {
+        one_9.0.borrow_mut().parent = Some(Rc::downgrade(&two_6));
+        four_99.0.borrow_mut().parent = Some(Rc::downgrade(&two_6));
+        //
+        //after rotation_right
+        let tobe_right_right = WrapNode::from_node(TreapNode {
             parent: None,
-            left: Some(WrapNode::from_rc_node(three_99.0.clone())),
+            left: None,
             right: None,
-            value: 2,
-            p: 6,
+            value: 4,
+            p: 99,
         });
-
-        let tobe = WrapNode::from_node(TreapNode {
+        let tobe_right = WrapNode::from_node(TreapNode {
             parent: None,
-            right: Some(WrapNode::from_rc_node(three_99.0.clone())),
-            left: Some(WrapNode::from_rc_node(two_6.0.clone())),
+            left: None,
+            right: Some(WrapNode::from_rc_node(tobe_right_right.0.clone())),
+            value: 3,
+            p: 4,
+        });
+        tobe_right_right.0.borrow_mut().parent = Some(Rc::downgrade(&tobe_right));
+        let tobe_left = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: None,
+            right: None,
+            value: 1,
+            p: 9,
+        });
+        let tobe_root = WrapNode::from_node(TreapNode {
+            parent: None,
+            right: Some(WrapNode::from_rc_node(tobe_right.0.clone())),
+            left: Some(WrapNode::from_rc_node(tobe_left.0.clone())),
             value: 2,
             p: 6,
         });
-        one_9.0.borrow_mut().parent = Some(Rc::downgrade(&two_6.0.clone()));
-        three_99.0.borrow_mut().parent = Some(Rc::downgrade(&two_6.0.clone()));
-        println!("{:#?}", three_99);
-        tobe_root.rotation_right();
-        tobe_root.rotation_left();
-        println!("{:#?}", tobe_root);
+        rotation_node.rotation_right();
+        assert_eq!(tobe_root, rotation_node);
     }
     //#[test]
     //fn add_test() {
