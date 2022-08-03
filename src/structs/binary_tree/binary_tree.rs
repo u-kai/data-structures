@@ -6,7 +6,7 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
-struct BTNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> {
+pub(super) struct BTNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> {
     value: T,
     left: Option<WrapNode<T>>,
     right: Option<WrapNode<T>>,
@@ -37,15 +37,17 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Eq for BTNode<T> {
 }
 
 #[derive(Debug, Clone, Eq)]
-struct WrapNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord>(Rc<RefCell<BTNode<T>>>);
+pub(super) struct WrapNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord>(
+    Rc<RefCell<BTNode<T>>>,
+);
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
-    fn new(value: T) -> Self {
+    pub fn new(value: T) -> Self {
         Self(Rc::new(RefCell::new(BTNode::new(value))))
     }
-    fn has_child(&self) -> bool {
+    pub fn has_child(&self) -> bool {
         self.borrow().left.is_some() || self.borrow().right.is_some()
     }
-    fn parent(&self) -> Option<Self> {
+    pub fn parent(&self) -> Option<Self> {
         if let Some(parent) = &self.borrow().parent {
             let parent = parent.upgrade().as_ref().unwrap().clone();
             Some(WrapNode(parent))
@@ -53,7 +55,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
             None
         }
     }
-    fn left(&self) -> Option<Self> {
+    pub fn left(&self) -> Option<Self> {
         if let Some(left) = self.borrow().left.as_ref() {
             let left = left.to_node().clone();
             Some(WrapNode(left))
@@ -61,7 +63,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
             None
         }
     }
-    fn right(&self) -> Option<Self> {
+    pub fn right(&self) -> Option<Self> {
         if let Some(right) = self.borrow().right.as_ref() {
             let right = right.to_node().clone();
             Some(WrapNode(right))
@@ -69,13 +71,13 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
             None
         }
     }
-    fn from_node(node: Rc<RefCell<BTNode<T>>>) -> Self {
+    pub fn from_node(node: Rc<RefCell<BTNode<T>>>) -> Self {
         Self(node)
     }
-    fn to_node(&self) -> Rc<RefCell<BTNode<T>>> {
+    pub fn to_node(&self) -> Rc<RefCell<BTNode<T>>> {
         self.0.clone()
     }
-    fn add_child(&mut self, child: WrapNode<T>) -> bool {
+    pub fn add_child(&mut self, child: WrapNode<T>) -> bool {
         if &self.borrow().value > &child.borrow().value {
             let child = child.to_node();
             self.borrow_mut().left = Some(Self::from_node(child));
@@ -97,7 +99,7 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Deref for WrapNode<T>
 }
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> PartialEq for WrapNode<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.borrow().value == other.borrow().value
+        self.0 == other.0
     }
 }
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> DerefMut for WrapNode<T> {
@@ -343,6 +345,32 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
 mod binary_tree_test {
 
     use super::*;
+    #[test]
+    fn node_eq_test() {
+        let mut node = BinaryTree::new(1);
+        node.add(2);
+        node.add(3);
+        node.add(0);
+
+        let two = WrapNode::new(2);
+        let three = WrapNode::new(3);
+        two.0.borrow_mut().right = Some(WrapNode::from_node(three.0.clone()));
+        three.0.borrow_mut().parent = Some(Rc::downgrade(&two));
+        let zero = WrapNode::new(0);
+
+        let tobe = WrapNode::from_node(Rc::new(RefCell::new(BTNode {
+            value: 1,
+            left: Some(WrapNode::from_node(zero.0.clone())),
+            right: Some(WrapNode::from_node(two.0.clone())),
+            parent: None,
+        })));
+        two.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        zero.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        let tobe = BinaryTree { root: tobe };
+        assert_eq!(node, tobe);
+        node.add(4);
+        assert_ne!(node, tobe)
+    }
 
     #[test]
     fn find_test() {
