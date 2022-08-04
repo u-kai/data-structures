@@ -6,30 +6,45 @@ use std::{
 };
 
 use crate::interfaces::sset::SSet;
-
-pub trait RandomGenerator {
-    fn gen_rand(&mut self) -> usize;
-}
 #[derive(Debug, Clone)]
-pub struct Treap<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord, R: RandomGenerator>
-{
-    root: WrapNode<T>,
-    random_generator: R,
+struct TreapNode<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> {
+    value: T,
+    left: Option<WrapNode<T>>,
+    right: Option<WrapNode<T>>,
+    parent: Option<Weak<RefCell<TreapNode<T>>>>,
+    p: usize,
 }
-
-impl<
-        T: Default + Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord,
-        R: RandomGenerator,
-    > Treap<T, R>
-{
-    fn new(root: T, mut random_generator: R) -> Self {
-        let rand = random_generator.gen_rand();
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq for TreapNode<T> {
+    fn eq(&self, other: &Self) -> bool {
+        if let (Some(parent), Some(other_parent)) = (self.parent.as_ref(), other.parent.as_ref()) {
+            let parent_value = &parent.upgrade();
+            let parent_value = &parent_value.as_ref().unwrap().borrow().value;
+            let other_parent_value = &other_parent.upgrade();
+            let other_parent_value = &other_parent_value.as_ref().unwrap().borrow().value;
+            return parent_value == other_parent_value
+                && self.value == other.value
+                && self.left == other.left
+                && self.right == other.right
+                && self.p == other.p;
+        }
+        self.value == other.value && self.left == other.left && self.right == other.right
+    }
+}
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> Eq for TreapNode<T> {
+    fn assert_receiver_is_total_eq(&self) {}
+}
+impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> TreapNode<T> {
+    fn new(value: T, p: usize) -> Self {
         Self {
-            root: WrapNode::new(root, rand),
-            random_generator,
+            value,
+            left: None,
+            right: None,
+            parent: None,
+            p,
         }
     }
 }
+
 #[derive(Debug, Clone, Eq)]
 struct WrapNode<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord>(
     Rc<RefCell<TreapNode<T>>>,
@@ -45,6 +60,11 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> Drop for Tr
         println!("node {:?} is droped", self.value)
     }
 }
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq for WrapNode<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
 impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     fn new(value: T, p: usize) -> Self {
         Self(Rc::new(RefCell::new(TreapNode::new(value, p))))
@@ -52,23 +72,40 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
     fn clone(&self) -> Self {
         WrapNode::from_rc_node(self.to_node().clone())
     }
+    fn p(&self) -> usize {
+        self.borrow().p
+    }
+    fn add_use_binary_search_algo(&mut self, child: WrapNode<T>) -> bool {
+        if &self.borrow().value > &child.borrow().value {
+            self.borrow_mut().left = Some(child.clone());
+        } else if &self.borrow().value < &child.borrow().value {
+            self.borrow_mut().right = Some(child.clone())
+        } else {
+            return false;
+        }
+        child.borrow_mut().parent = Some(Rc::downgrade(&self));
+        true
+    }
     fn rotation_right(&mut self) {
-        if let Some(mut parent) = self.parent() {
-            if let Some(mut child) = self.left() {
+        let parent = self.parent();
+        if let Some(mut child) = self.left() {
+            if let Some(mut parent) = parent {
                 child.set_parent(Some(parent.clone()));
                 if parent.left().is_some() && parent.left().as_ref().unwrap() == self {
                     parent.set_left(Some(child.clone()));
                 } else {
                     parent.set_right(Some(child.clone()));
                 }
-                self.set_left(child.right().map(|right| right.clone()));
-                if let Some(mut left) = self.left() {
-                    left.set_parent(Some(self.clone()));
-                }
-                self.set_parent(Some(child.clone()));
-                child.set_right(Some(self.clone()));
+            } else {
+                child.set_parent(None);
             }
-        };
+            self.set_left(child.right().map(|right| right.clone()));
+            if let Some(mut left) = self.left() {
+                left.set_parent(Some(self.clone()));
+            }
+            self.set_parent(Some(child.clone()));
+            child.set_right(Some(self.clone()));
+        }
     }
     fn rotation_left(&mut self) {
         let parent = self.parent();
@@ -80,7 +117,10 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
                 } else {
                     parent.set_right(Some(child.clone()));
                 }
+            } else {
+                child.set_parent(None);
             }
+
             self.set_right(child.left().map(|left| left.clone()));
             if let Some(mut right) = self.right() {
                 right.set_parent(Some(self.clone()));
@@ -132,64 +172,94 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
         self.0.clone()
     }
 }
-impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq for WrapNode<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
+
+pub trait RandomGenerator {
+    fn gen_rand(&mut self) -> usize;
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Treap<
+    T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord,
+    R: RandomGenerator + Debug,
+> {
+    root: WrapNode<T>,
+    random_generator: R,
 }
 
-#[derive(Debug, Clone)]
-struct TreapNode<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> {
-    value: T,
-    left: Option<WrapNode<T>>,
-    right: Option<WrapNode<T>>,
-    parent: Option<Weak<RefCell<TreapNode<T>>>>,
-    p: usize,
-}
-impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq for TreapNode<T> {
-    fn eq(&self, other: &Self) -> bool {
-        if let (Some(parent), Some(other_parent)) = (self.parent.as_ref(), other.parent.as_ref()) {
-            let parent_value = &parent.upgrade();
-            let parent_value = &parent_value.as_ref().unwrap().borrow().value;
-            let other_parent_value = &other_parent.upgrade();
-            let other_parent_value = &other_parent_value.as_ref().unwrap().borrow().value;
-            println!("self = {:#?}", self);
-            println!(
-                "self.parent = {:?} other.parent = {:?}",
-                parent_value, other_parent_value
-            );
-            return parent_value == other_parent_value
-                && self.value == other.value
-                && self.left == other.left
-                && self.right == other.right
-                && self.p == other.p;
-        }
-        self.value == other.value && self.left == other.left && self.right == other.right
-    }
-}
-impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> Eq for TreapNode<T> {
-    fn assert_receiver_is_total_eq(&self) {}
-}
-impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> TreapNode<T> {
-    fn new(value: T, p: usize) -> Self {
+impl<
+        T: Default + Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord,
+        R: RandomGenerator + Debug,
+    > Treap<T, R>
+{
+    fn new(root: T, mut random_generator: R) -> Self {
+        let rand = random_generator.gen_rand();
         Self {
-            value,
-            left: None,
-            right: None,
-            parent: None,
-            p,
+            root: WrapNode::new(root, rand),
+            random_generator,
         }
+    }
+    fn find_node(&self, value: T) -> Option<WrapNode<T>> {
+        let mut node = Some(self.root.clone());
+        while node.is_some() {
+            if node.as_ref().unwrap().borrow().value > value {
+                let new_node = node.as_ref().unwrap().left();
+                node = new_node;
+            } else if node.as_ref().unwrap().borrow().value < value {
+                let new_node = node.as_ref().unwrap().right();
+                node = new_node;
+            } else if node.as_ref().unwrap().borrow().value == value {
+                let node = node.as_ref().unwrap();
+                return Some(node.clone());
+            }
+        }
+        None
+    }
+    fn find_last(&self, value: T) -> Option<WrapNode<T>> {
+        let mut node = Some(self.root.clone());
+        let mut prev = None;
+        while node.is_some() {
+            if node.as_ref().unwrap().borrow().value > value {
+                let new_node = node.as_ref().unwrap().borrow().left.clone();
+                prev = Some(node.as_ref().unwrap().clone());
+                node = new_node;
+            } else if node.as_ref().unwrap().borrow().value < value {
+                let new_node = node.as_ref().unwrap().borrow().right.clone();
+                prev = Some(node.as_ref().unwrap().clone());
+                node = new_node
+            } else {
+                return node;
+            }
+        }
+        prev
     }
 }
 
-impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord, R: RandomGenerator> SSet<T>
-    for Treap<T, R>
+impl<
+        T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord,
+        R: RandomGenerator + Debug,
+    > SSet<T> for Treap<T, R>
 {
     fn add(&mut self, x: T) -> bool {
-        true
+        let new_node = WrapNode::new(x.clone(), self.random_generator.gen_rand());
+        let mut insert_prev = self.find_last(x).unwrap();
+        let result = insert_prev.add_use_binary_search_algo(new_node.clone());
+        if !result {
+            return result;
+        }
+        while new_node.parent().is_some() && new_node.parent().as_ref().unwrap().p() > new_node.p()
+        {
+            if new_node.parent().as_ref().unwrap().right() == Some(new_node.clone()) {
+                new_node.parent().as_mut().unwrap().rotation_left()
+            } else {
+                new_node.parent().as_mut().unwrap().rotation_right();
+            }
+        }
+        if new_node.parent().is_none() {
+            self.root = new_node.clone()
+        }
+        result
     }
     fn find(&self, x: T) -> bool {
-        true
+        self.find_node(x).is_some()
     }
     fn remove(&mut self, x: T) -> Option<T> {
         None
@@ -201,17 +271,59 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord, R: RandomGe
 
 #[cfg(test)]
 mod treap_tree_test {
-    use std::rc::{Rc, Weak};
+    use std::rc::Rc;
 
     use crate::interfaces::sset::SSet;
 
     use super::{RandomGenerator, Treap, TreapNode, WrapNode};
 
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct RandomGeneratorMock(Vec<usize>);
     impl RandomGenerator for RandomGeneratorMock {
         fn gen_rand(&mut self) -> usize {
-            self.0.pop().unwrap()
+            self.0.pop().unwrap_or_default()
         }
+    }
+    fn make_test_tree(random_generator: RandomGeneratorMock) -> Treap<i32, RandomGeneratorMock> {
+        Treap {
+            root: make_test_node(),
+            random_generator,
+        }
+    }
+    fn make_test_node() -> WrapNode<i32> {
+        let tobe_right = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: None,
+            right: None,
+            value: 4,
+            p: 99,
+        });
+        let tobe_left_left = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: None,
+            right: None,
+            value: 1,
+            p: 9,
+        });
+        let tobe_left = WrapNode::from_node(TreapNode {
+            parent: None,
+            right: None,
+            left: Some(WrapNode::from_rc_node(tobe_left_left.0.clone())),
+            value: 2,
+            p: 6,
+        });
+        let tobe = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: Some(WrapNode::from_rc_node(tobe_left.0.clone())),
+            right: Some(WrapNode::from_rc_node(tobe_right.0.clone())),
+            value: 3,
+            p: 4,
+        });
+
+        tobe_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        tobe_right.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        tobe_left_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe_left));
+        tobe
     }
     #[test]
     fn rotation_test() {
@@ -282,46 +394,35 @@ mod treap_tree_test {
         assert_eq!(tobe, two_6);
 
         //after rotation_right & rotation_left
-        let tobe_right = WrapNode::from_node(TreapNode {
-            parent: None,
-            left: None,
-            right: None,
-            value: 4,
-            p: 99,
-        });
-        let tobe_left_left = WrapNode::from_node(TreapNode {
-            parent: None,
-            left: None,
-            right: None,
-            value: 1,
-            p: 9,
-        });
-        let tobe_left = WrapNode::from_node(TreapNode {
-            parent: None,
-            right: None,
-            left: Some(WrapNode::from_rc_node(tobe_left_left.0.clone())),
-            value: 2,
-            p: 6,
-        });
-        let tobe = WrapNode::from_node(TreapNode {
-            parent: None,
-            left: Some(WrapNode::from_rc_node(tobe_left.0.clone())),
-            right: Some(WrapNode::from_rc_node(tobe_right.0.clone())),
-            value: 3,
-            p: 4,
-        });
-
         two_6.rotation_left();
-        tobe_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
-        tobe_right.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
-        tobe_left_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe_left));
-
-        assert_eq!(tobe, tobe_root);
+        assert_eq!(make_test_node(), tobe_root);
     }
-    //#[test]
-    //fn add_test() {
-    //let mut tree = Treap::new(3, RandomGeneratorMock(vec![1, 6]));
-    //assert!(tree.add(1));
-    //assert!(!tree.add(1));
-    //}
+    #[test]
+    fn add_test() {
+        let rand = RandomGeneratorMock(vec![9, 99, 6, 4]);
+        let mut tree = Treap::new(3, rand);
+        assert!(tree.add(2));
+        assert!(tree.add(4));
+        assert!(tree.add(1));
+        assert_eq!(make_test_tree(RandomGeneratorMock(vec![])), tree);
+        let rand = RandomGeneratorMock(vec![4, 99, 9, 6]);
+        let mut tree = Treap::new(2, rand);
+        assert!(tree.add(1));
+        assert!(tree.add(4));
+        assert!(tree.add(3));
+        assert_eq!(make_test_tree(RandomGeneratorMock(vec![])), tree);
+        let rand = RandomGeneratorMock(vec![99, 9, 6, 4]);
+        let mut tree = Treap::new(3, rand);
+        assert!(tree.add(2));
+        assert!(tree.add(1));
+        assert!(tree.add(4));
+        assert_eq!(make_test_tree(RandomGeneratorMock(vec![])), tree);
+        let rand = RandomGeneratorMock(vec![9, 6, 4, 99]);
+        let mut tree = Treap::new(4, rand);
+        assert!(tree.add(3));
+        assert!(tree.add(2));
+        assert!(tree.add(1));
+        assert!(!tree.add(1));
+        assert_eq!(make_test_tree(RandomGeneratorMock(vec![])), tree);
+    }
 }
