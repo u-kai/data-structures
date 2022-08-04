@@ -40,12 +40,55 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> Deref for W
         &self.0
     }
 }
+impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> Drop for TreapNode<T> {
+    fn drop(&mut self) {
+        println!("node {:?} is droped", self.value)
+    }
+}
 impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     fn new(value: T, p: usize) -> Self {
         Self(Rc::new(RefCell::new(TreapNode::new(value, p))))
     }
-    fn rotation_right(&mut self) {}
-    fn rotation_left(&mut self) {}
+    fn clone(&self) -> Self {
+        WrapNode::from_rc_node(self.to_node().clone())
+    }
+    fn rotation_right(&mut self) {
+        if let Some(mut parent) = self.parent() {
+            if let Some(mut child) = self.left() {
+                child.set_parent(Some(parent.clone()));
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == self {
+                    parent.set_left(Some(child.clone()));
+                } else {
+                    parent.set_right(Some(child.clone()));
+                }
+                self.set_left(child.right().map(|right| right.clone()));
+                if let Some(mut left) = self.left() {
+                    left.set_parent(Some(self.clone()));
+                }
+                self.set_parent(Some(child.clone()));
+                child.set_right(Some(self.clone()));
+            }
+        };
+    }
+    fn rotation_left(&mut self) {
+        let parent = self.parent();
+        if let Some(mut child) = self.right() {
+            child.set_parent(parent.as_ref().map(|parent| parent.clone()));
+            if let Some(mut parent) = parent {
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == self {
+                    parent.set_left(Some(child.clone()));
+                } else {
+                    parent.set_right(Some(child.clone()));
+                }
+            }
+            self.set_right(child.left().map(|left| left.clone()));
+            if let Some(mut right) = self.right() {
+                right.set_parent(Some(self.clone()));
+            }
+            self.set_parent(Some(child.clone()));
+            child.set_left(Some(self.clone()));
+        }
+    }
     fn parent(&self) -> Option<Self> {
         if let Some(parent) = &self.borrow().parent {
             let parent = parent.upgrade().as_ref().unwrap().clone();
@@ -69,6 +112,15 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
         } else {
             None
         }
+    }
+    fn set_parent(&mut self, parent: Option<WrapNode<T>>) {
+        self.0.borrow_mut().parent = parent.map(|parent| Rc::downgrade(&parent));
+    }
+    fn set_right(&mut self, right: Option<WrapNode<T>>) {
+        self.0.borrow_mut().right = right
+    }
+    fn set_left(&mut self, left: Option<WrapNode<T>>) {
+        self.0.borrow_mut().left = left
     }
     fn from_node(node: TreapNode<T>) -> Self {
         Self(Rc::new(RefCell::new(node)))
@@ -101,6 +153,11 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord + Default> PartialEq f
             let parent_value = &parent_value.as_ref().unwrap().borrow().value;
             let other_parent_value = &other_parent.upgrade();
             let other_parent_value = &other_parent_value.as_ref().unwrap().borrow().value;
+            println!("self = {:#?}", self);
+            println!(
+                "self.parent = {:?} other.parent = {:?}",
+                parent_value, other_parent_value
+            );
             return parent_value == other_parent_value
                 && self.value == other.value
                 && self.left == other.left
@@ -159,21 +216,21 @@ mod treap_tree_test {
     #[test]
     fn rotation_test() {
         // before rotation
-        let mut rotation_node = WrapNode::from_node(TreapNode {
+        let tobe_root = WrapNode::from_node(TreapNode {
             parent: None,
             left: None,
             right: None,
             value: 3,
             p: 4,
         });
-        let four_99 = WrapNode::from_node(TreapNode {
+        let mut four_99 = WrapNode::from_node(TreapNode {
             parent: None,
-            left: Some(WrapNode::from_rc_node(rotation_node.0.clone())),
+            left: Some(WrapNode::from_rc_node(tobe_root.0.clone())),
             right: None,
             value: 4,
             p: 99,
         });
-        rotation_node.0.borrow_mut().parent = Some(Rc::downgrade(&four_99));
+        tobe_root.0.borrow_mut().parent = Some(Rc::downgrade(&four_99));
         let one_9 = WrapNode::from_node(TreapNode {
             parent: None,
             left: None,
@@ -181,15 +238,16 @@ mod treap_tree_test {
             value: 1,
             p: 9,
         });
-        let two_6 = WrapNode::from_node(TreapNode {
+        let mut two_6 = WrapNode::from_node(TreapNode {
             parent: None,
-            left: Some(WrapNode::from_rc_node(four_99.0.clone())),
-            right: Some(WrapNode::from_rc_node(one_9.0.clone())),
+            left: Some(WrapNode::from_rc_node(one_9.0.clone())),
+            right: Some(WrapNode::from_rc_node(four_99.0.clone())),
             value: 2,
             p: 6,
         });
         one_9.0.borrow_mut().parent = Some(Rc::downgrade(&two_6));
         four_99.0.borrow_mut().parent = Some(Rc::downgrade(&two_6));
+        four_99.rotation_right();
         //
         //after rotation_right
         let tobe_right_right = WrapNode::from_node(TreapNode {
@@ -214,15 +272,51 @@ mod treap_tree_test {
             value: 1,
             p: 9,
         });
-        let tobe_root = WrapNode::from_node(TreapNode {
+        let tobe = WrapNode::from_node(TreapNode {
             parent: None,
             right: Some(WrapNode::from_rc_node(tobe_right.0.clone())),
             left: Some(WrapNode::from_rc_node(tobe_left.0.clone())),
             value: 2,
             p: 6,
         });
-        rotation_node.rotation_right();
-        assert_eq!(tobe_root, rotation_node);
+        assert_eq!(tobe, two_6);
+
+        //after rotation_right & rotation_left
+        let tobe_right = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: None,
+            right: None,
+            value: 4,
+            p: 99,
+        });
+        let tobe_left_left = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: None,
+            right: None,
+            value: 1,
+            p: 9,
+        });
+        let tobe_left = WrapNode::from_node(TreapNode {
+            parent: None,
+            right: None,
+            left: Some(WrapNode::from_rc_node(tobe_left_left.0.clone())),
+            value: 2,
+            p: 6,
+        });
+        let tobe = WrapNode::from_node(TreapNode {
+            parent: None,
+            left: Some(WrapNode::from_rc_node(tobe_left.0.clone())),
+            right: Some(WrapNode::from_rc_node(tobe_right.0.clone())),
+            value: 3,
+            p: 4,
+        });
+
+        two_6.rotation_left();
+        tobe_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        tobe_right.0.borrow_mut().parent = Some(Rc::downgrade(&tobe));
+        tobe_left_left.0.borrow_mut().parent = Some(Rc::downgrade(&tobe_left));
+
+        assert_eq!(tobe, tobe_root);
     }
     //#[test]
     //fn add_test() {
