@@ -44,8 +44,23 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     pub fn new(value: T) -> Self {
         Self(Rc::new(RefCell::new(BTNode::new(value))))
     }
+    pub fn value(&self) -> T {
+        self.borrow().value.clone()
+    }
+    pub fn clone(&self) -> Self {
+        WrapNode::from_node(self.to_node().clone())
+    }
     pub fn has_child(&self) -> bool {
         self.borrow().left.is_some() || self.borrow().right.is_some()
+    }
+    pub fn set_parent(&mut self, parent: Option<WrapNode<T>>) {
+        self.0.borrow_mut().parent = parent.map(|parent| Rc::downgrade(&parent));
+    }
+    pub fn set_right(&mut self, right: Option<WrapNode<T>>) {
+        self.0.borrow_mut().right = right
+    }
+    pub fn set_left(&mut self, left: Option<WrapNode<T>>) {
+        self.0.borrow_mut().left = left
     }
     pub fn parent(&self) -> Option<Self> {
         if let Some(parent) = &self.borrow().parent {
