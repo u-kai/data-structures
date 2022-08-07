@@ -106,36 +106,17 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
         true
     }
     pub fn size(&self) -> usize {
-        let mut node = Some(WrapNode::from_node(self.to_node()));
-        let mut prev = None;
-        let mut next = None;
-        let mut n = 0;
-        while node.is_some() {
-            let parent = node.as_ref().unwrap().parent();
-            let left = node.as_ref().unwrap().left();
-            let right = node.as_ref().unwrap().right();
-            if parent == prev {
-                n += 1;
-                if node.as_ref().unwrap().borrow().left.is_some() {
-                    next = Some(left.unwrap());
-                } else if node.as_ref().unwrap().borrow_mut().right.is_some() {
-                    next = Some(right.unwrap())
-                } else {
-                    next = parent;
-                }
-            } else if prev == left {
-                if right.is_some() {
-                    next = right;
-                } else {
-                    next = parent;
-                }
-            } else {
-                next = parent
-            }
-            prev = node;
-            node = next;
-        }
-        n
+        let left_len = if let Some(left) = self.left() {
+            left.size()
+        } else {
+            0
+        };
+        let right_len = if let Some(right) = self.right() {
+            right.size()
+        } else {
+            0
+        };
+        1 + left_len + right_len
     }
     fn find_node(&self, value: T) -> Option<WrapNode<T>> {
         let mut node = Some(WrapNode::from_node(self.to_node()));
@@ -156,7 +137,16 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     pub fn find(&self, value: T) -> bool {
         self.find_node(value).is_some()
     }
-    fn find_last(&self, value: T) -> Option<WrapNode<T>> {
+    pub fn find_parent(&self, value: T) -> Option<WrapNode<T>> {
+        let last = self.find_last(value.clone());
+        if let Some(last) = last {
+            if last.value() == value.clone() {
+                return last.parent();
+            }
+        }
+        None
+    }
+    pub fn find_last(&self, value: T) -> Option<WrapNode<T>> {
         let mut node = Some(WrapNode::from_node(self.to_node()));
         let mut prev = None;
         while node.is_some() {
@@ -372,11 +362,36 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> BinaryTree<T> {
         }
     }
     pub fn size(&self) -> usize {
-        if let Some(size) = self.root.as_ref().map(|root| root.size()) {
-            size
-        } else {
-            0
+        let mut node = Some(self.root.as_ref().unwrap().clone());
+        let mut prev = None;
+        let mut next = None;
+        let mut n = 0;
+        while node.is_some() {
+            let parent = node.as_ref().unwrap().parent();
+            let left = node.as_ref().unwrap().left();
+            let right = node.as_ref().unwrap().right();
+            if parent == prev {
+                n += 1;
+                if node.as_ref().unwrap().borrow().left.is_some() {
+                    next = Some(left.unwrap());
+                } else if node.as_ref().unwrap().borrow_mut().right.is_some() {
+                    next = Some(right.unwrap())
+                } else {
+                    next = parent;
+                }
+            } else if prev == left {
+                if right.is_some() {
+                    next = right;
+                } else {
+                    next = parent;
+                }
+            } else {
+                next = parent
+            }
+            prev = node;
+            node = next;
         }
+        n
     }
     fn find_node(&self, value: T) -> Option<WrapNode<T>> {
         if let Some(option_node) = self.root.as_ref().map(|root| root.find_node(value)) {

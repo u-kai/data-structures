@@ -4,23 +4,63 @@ use super::binary_tree::WrapNode;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScapegoatTree<T: Clone + Debug + PartialEq + Eq + PartialOrd + Ord> {
-    root: WrapNode<T>,
+    root: Option<WrapNode<T>>,
     q: usize,
 }
 
 impl<T: Clone + Debug + PartialEq + Eq + PartialOrd + Ord> ScapegoatTree<T> {
+    pub fn remove(&mut self, x: T) -> Option<T> {
+        if let Some(mut root) = self.root.clone() {
+            if let Some(remove_node) = root.remove(x.clone()) {
+                let size = root.size();
+                if size * 2 < self.q {
+                    self.rebuild(self.root.as_ref().unwrap().clone());
+                    self.q = size;
+                }
+                return Some(remove_node);
+            };
+        } else {
+        }
+        None
+    }
     pub fn add(&mut self, x: T) -> bool {
-        false
+        let node = WrapNode::new(x.clone());
+        if let Some(mut root) = self.root.clone() {
+            let result = root.add(x.clone());
+            let depth = root.depth(x.clone()).unwrap();
+            if depth > Self::log3_2(self.q) {
+                let mut parent = root.find_parent(x.clone()).unwrap();
+                let mut parent_size = parent.size();
+                let mut parent_parent_size = parent.parent().as_ref().unwrap().size();
+                while (3 * parent_size) <= (2 * parent_parent_size) {
+                    let new_parent = parent.parent().unwrap();
+                    parent = new_parent;
+                    parent_size = parent.size();
+                    parent_parent_size = parent.parent().as_ref().unwrap().size();
+                }
+                self.rebuild(parent.parent().as_ref().unwrap().clone());
+            }
+            self.q += 1;
+            result
+        } else {
+            self.root = Some(node);
+            self.q = 1;
+            true
+        }
     }
     fn rebuild(&mut self, node: WrapNode<T>) {
         let ns = node.size();
         let mut array: Vec<Option<WrapNode<T>>> = vec![None; ns];
         Self::pack_into_array(Some(node.clone()), &mut array, 0);
-        //if let Some(parent) = node.parent(){
-
-        //}else{
-        //self.root =
-        //};
+        let array = array
+            .iter()
+            .map(|node| node.as_ref().unwrap().clone())
+            .collect();
+        if let Some(parent) = node.parent() {
+            Self::build_balanced(Some(parent), array, ns / 2);
+        } else {
+            self.root = Self::build_balanced(None, array, ns / 2);
+        };
     }
     fn build_balanced(
         mut parent: Option<WrapNode<T>>,
@@ -73,43 +113,26 @@ impl<T: Clone + Debug + PartialEq + Eq + PartialOrd + Ord> ScapegoatTree<T> {
 #[cfg(test)]
 mod scapegoat_tree_test {
     use super::*;
-    fn make_full_node() -> WrapNode<i32> {
-        let mut root = WrapNode::new(7);
-        root.add(2);
-        root.add(6);
-        root.add(4);
-        root.add(1);
-        root.add(0);
-        root
-    }
-    fn make_full_node2() -> WrapNode<i32> {
-        let mut root = WrapNode::new(9);
-        root.add(8);
-        root.add(7);
-        root.add(10);
-        root.add(11);
-        root.add(2);
-        root.add(6);
-        root.add(4);
-        root.add(1);
-        root.add(0);
-        root
-    }
-    fn make_full_tree() -> ScapegoatTree<i32> {
-        let mut tree = ScapegoatTree {
-            root: make_full_node(), //WrapNode::new(9),
-            q: 10,
+    #[test]
+    fn remove_test() {
+        let mut tree = make_full_tree();
+        tree.add(5);
+        assert_eq!(tree.remove(5), Some(5));
+        let mut tobe = WrapNode::new(9);
+        tobe.add(10);
+        tobe.add(11);
+        tobe.add(8);
+        tobe.add(4);
+        tobe.add(6);
+        tobe.add(7);
+        tobe.add(1);
+        tobe.add(2);
+        tobe.add(0);
+        let tobe = ScapegoatTree {
+            root: Some(tobe),
+            q: 11,
         };
-        //tree.root.add(8);
-        //tree.root.add(7);
-        //tree.root.add(10);
-        //tree.root.add(11);
-        //tree.root.add(2);
-        //tree.root.add(6);
-        //tree.root.add(4);
-        //tree.root.add(1);
-        //tree.root.add(0);
-        tree
+        assert_eq!(tree, tobe);
     }
     #[test]
     fn add_test() {
@@ -126,11 +149,32 @@ mod scapegoat_tree_test {
         tobe.add(1);
         tobe.add(2);
         tobe.add(0);
-        let tobe = ScapegoatTree { root: tobe, q: 10 };
-        //assert_eq!(tree, tobe);
+        let tobe = ScapegoatTree {
+            root: Some(tobe),
+            q: 11,
+        };
+        assert_eq!(tree, tobe);
     }
+
     #[test]
-    fn rebuild_test() {
+    fn build_balanced_test() {
+        let mut node = make_full_node();
+        node.add(5);
+        let mut node_array = vec![None; node.size()];
+        ScapegoatTree::pack_into_array(Some(node.clone()), &mut node_array, 0);
+        let array = node_array
+            .iter()
+            .map(|node| node.as_ref().unwrap().clone())
+            .collect();
+        let node = ScapegoatTree::build_balanced(None, array, node.size() / 2);
+        let mut tobe = WrapNode::new(4);
+        tobe.add(6);
+        tobe.add(7);
+        tobe.add(5);
+        tobe.add(1);
+        tobe.add(2);
+        tobe.add(0);
+        assert_eq!(node, Some(tobe));
         let mut node = make_full_node();
         node.add(5);
         let mut node_array = vec![None; node.size()];
@@ -165,5 +209,34 @@ mod scapegoat_tree_test {
                 .map(|node| node.as_ref().map(|node| node.value()))
                 .collect::<Vec<_>>()
         );
+    }
+    fn make_full_node() -> WrapNode<i32> {
+        let mut root = WrapNode::new(7);
+        root.add(2);
+        root.add(6);
+        root.add(4);
+        root.add(1);
+        root.add(0);
+        root
+    }
+    fn make_full_node2() -> WrapNode<i32> {
+        let mut root = WrapNode::new(9);
+        root.add(8);
+        root.add(7);
+        root.add(10);
+        root.add(11);
+        root.add(2);
+        root.add(6);
+        root.add(4);
+        root.add(1);
+        root.add(0);
+        root
+    }
+    fn make_full_tree() -> ScapegoatTree<i32> {
+        let tree = ScapegoatTree {
+            root: Some(make_full_node2()),
+            q: 10,
+        };
+        tree
     }
 }
