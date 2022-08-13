@@ -40,9 +40,57 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> Eq for BTNode<T> {
 pub(super) struct WrapNode<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord>(
     Rc<RefCell<BTNode<T>>>,
 );
+pub(super) trait Tree<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> {
+    fn change_root(&mut self, node: WrapNode<T>) -> ();
+}
 impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     pub fn new(value: T) -> Self {
         Self(Rc::new(RefCell::new(BTNode::new(value))))
+    }
+    pub fn rotation_right(tree: &mut impl Tree<T>, mut rotation_node: WrapNode<T>) {
+        if let Some(mut child) = rotation_node.left() {
+            let parent = rotation_node.parent();
+            if let Some(mut parent) = parent {
+                child.set_parent(Some(parent.clone()));
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == &rotation_node {
+                    parent.set_left(Some(child.clone()));
+                } else {
+                    parent.set_right(Some(child.clone()));
+                }
+            } else {
+                child.set_parent(None);
+                tree.change_root(child.clone());
+            }
+            rotation_node.set_left(child.right().map(|right| right.clone()));
+            if let Some(mut left) = rotation_node.left() {
+                left.set_parent(Some(rotation_node.clone()));
+            }
+            rotation_node.set_parent(Some(child.clone()));
+            child.set_right(Some(rotation_node.clone()));
+        }
+    }
+    pub fn rotation_left(tree: &mut impl Tree<T>, mut rotation_node: WrapNode<T>) {
+        let parent = rotation_node.parent();
+        if let Some(mut child) = rotation_node.right() {
+            child.set_parent(parent.as_ref().map(|parent| parent.clone()));
+            if let Some(mut parent) = parent {
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == &rotation_node {
+                    parent.set_left(Some(child.clone()));
+                } else {
+                    parent.set_right(Some(child.clone()));
+                }
+            } else {
+                child.set_parent(None);
+                tree.change_root(child.clone());
+            }
+
+            rotation_node.set_right(child.left().map(|left| left.clone()));
+            if let Some(mut right) = rotation_node.right() {
+                right.set_parent(Some(rotation_node.clone()));
+            }
+            rotation_node.set_parent(Some(child.clone()));
+            child.set_left(Some(rotation_node.clone()));
+        }
     }
     pub fn change_value(&self, new_value: T) {
         self.borrow_mut().value = new_value

@@ -188,12 +188,12 @@ impl<
         }
         prev
     }
-    fn rotation_right(&mut self, mut remove_node: WrapNode<T>) {
-        if let Some(mut child) = remove_node.left() {
-            let parent = remove_node.parent();
+    fn rotation_right(&mut self, mut rotation_node: WrapNode<T>) {
+        if let Some(mut child) = rotation_node.left() {
+            let parent = rotation_node.parent();
             if let Some(mut parent) = parent {
                 child.set_parent(Some(parent.clone()));
-                if parent.left().is_some() && parent.left().as_ref().unwrap() == &remove_node {
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == &rotation_node {
                     parent.set_left(Some(child.clone()));
                 } else {
                     parent.set_right(Some(child.clone()));
@@ -202,20 +202,20 @@ impl<
                 child.set_parent(None);
                 self.root = child.clone();
             }
-            remove_node.set_left(child.right().map(|right| right.clone()));
-            if let Some(mut left) = remove_node.left() {
-                left.set_parent(Some(remove_node.clone()));
+            rotation_node.set_left(child.right().map(|right| right.clone()));
+            if let Some(mut left) = rotation_node.left() {
+                left.set_parent(Some(rotation_node.clone()));
             }
-            remove_node.set_parent(Some(child.clone()));
-            child.set_right(Some(remove_node.clone()));
+            rotation_node.set_parent(Some(child.clone()));
+            child.set_right(Some(rotation_node.clone()));
         }
     }
-    fn rotation_left(&mut self, mut remove_node: WrapNode<T>) {
-        let parent = remove_node.parent();
-        if let Some(mut child) = remove_node.right() {
+    fn rotation_left(&mut self, mut rotation_node: WrapNode<T>) {
+        let parent = rotation_node.parent();
+        if let Some(mut child) = rotation_node.right() {
             child.set_parent(parent.as_ref().map(|parent| parent.clone()));
             if let Some(mut parent) = parent {
-                if parent.left().is_some() && parent.left().as_ref().unwrap() == &remove_node {
+                if parent.left().is_some() && parent.left().as_ref().unwrap() == &rotation_node {
                     parent.set_left(Some(child.clone()));
                 } else {
                     parent.set_right(Some(child.clone()));
@@ -225,12 +225,12 @@ impl<
                 self.root = child.clone();
             }
 
-            remove_node.set_right(child.left().map(|left| left.clone()));
-            if let Some(mut right) = remove_node.right() {
-                right.set_parent(Some(remove_node.clone()));
+            rotation_node.set_right(child.left().map(|left| left.clone()));
+            if let Some(mut right) = rotation_node.right() {
+                right.set_parent(Some(rotation_node.clone()));
             }
-            remove_node.set_parent(Some(child.clone()));
-            child.set_left(Some(remove_node.clone()));
+            rotation_node.set_parent(Some(child.clone()));
+            child.set_left(Some(rotation_node.clone()));
         }
     }
 }
