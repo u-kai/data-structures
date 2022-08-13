@@ -1,24 +1,46 @@
-use structs::binary_tree::binary_tree::BinaryTree;
+use std::{
+    sync::{mpsc, Arc, Mutex},
+    thread,
+};
 
 mod interfaces;
 mod structs;
 mod types;
+trait OffTreadExt: Iterator {
+    fn off_thread(self) -> mpsc::IntoIter<Self::Item>;
+}
+impl<T> OffTreadExt for T
+where
+    T: Iterator + Send + 'static,
+    T::Item: Send + 'static,
+{
+    fn off_thread(self) -> mpsc::IntoIter<Self::Item> {
+        let (s, r) = mpsc::sync_channel(1);
+        thread::spawn(move || {
+            for item in self {
+                if s.send(item).is_err() {
+                    break;
+                }
+            }
+        });
+        r.into_iter()
+    }
+}
 
+fn lock(data: &Mutex<i32>) -> i32 {
+    println!("hello");
+    let data = data.lock();
+    data.unwrap().clone()
+}
+fn world(data: &Mutex<i32>) -> i32 {
+    println!("world");
+    let data = data.lock();
+    data.unwrap().clone()
+}
 fn main() {
-    let mut tree = BinaryTree::new(7);
-    tree.add(3);
-    tree.add(1);
-    tree.add(5);
-    tree.add(4);
-    tree.add(6);
-    tree.add(11);
-    tree.add(9);
-    tree.add(8);
-    tree.add(13);
-    tree.add(12);
-    tree.add(14);
-    tree.remove(11);
-    tree.remove(1);
-    tree.remove(9);
-    println!("{:#?}", tree);
+    let data = Mutex::new(5);
+    {
+        let _ = &data.lock();
+    }
+    let _ = &data.lock();
 }

@@ -44,6 +44,9 @@ impl<T: Clone + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T> {
     pub fn new(value: T) -> Self {
         Self(Rc::new(RefCell::new(BTNode::new(value))))
     }
+    pub fn change_value(&self, new_value: T) {
+        self.borrow_mut().value = new_value
+    }
     pub fn value(&self) -> T {
         self.borrow().value.clone()
     }
