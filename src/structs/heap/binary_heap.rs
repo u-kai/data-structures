@@ -22,12 +22,48 @@ impl<T: Clone + Debug + PartialEq + PartialOrd> BinaryHeap<T> {
         self.n += 1;
         true
     }
+    pub fn remove(&mut self) -> Option<T> {
+        let removed = self.array[0].take();
+        self.n -= 1;
+        self.array.swap(0, self.n);
+        self.trickle_down(0);
+        if self.n * 3 < self.array.len() {
+            self.resize()
+        }
+        removed
+    }
+    fn trickle_down(&mut self, mut i: usize) {
+        loop {
+            let mut j = -1;
+            let r = Self::right_index(i);
+            if r < self.n && self.array[r] < self.array[i] {
+                let l = Self::left_index(i);
+                if self.array[l] < self.array[r] {
+                    j = l as isize
+                } else {
+                    j = r as isize
+                }
+            } else {
+                let l = Self::left_index(i);
+                if l < self.n && self.array[l] < self.array[r] {
+                    j = l as isize
+                }
+            }
+            if j >= 0 {
+                self.array.swap(i, j as usize);
+                i = j as usize
+            } else {
+                return;
+            }
+        }
+    }
     fn bubble_up(&mut self, mut i: usize) {
         if i == 0 {
             return;
         }
         let mut parent_index = Self::parent_index(i);
         while i > 0 && self.array[i] < self.array[parent_index] {
+            println!("parent = {:?}", self.array[parent_index]);
             self.array.swap(i, parent_index);
             i = parent_index;
             if i == 0 {
@@ -58,44 +94,93 @@ impl<T: Clone + Debug + PartialEq + PartialOrd> BinaryHeap<T> {
 mod binary_heap_test {
     use super::*;
     #[test]
-    fn binary_heap_test() {
-        let tobe = BinaryHeap {
+    fn remove_test() {
+        let mut test_node = BinaryHeap {
             array: Box::new([
-                Some(0),
-                Some(1),
-                Some(2),
-                Some(3),
                 Some(4),
-                Some(5),
-                Some(6),
-                Some(7),
-                Some(8),
                 Some(9),
-                Some(10),
-                Some(11),
-                Some(12),
-                Some(13),
-                Some(14),
+                Some(6),
+                Some(17),
+                Some(26),
+                Some(8),
+                Some(16),
+                Some(19),
+                Some(69),
+                Some(32),
+                Some(93),
+                Some(55),
+                Some(50),
+                None,
                 None,
             ]),
-            n: 15,
+            n: 13,
         };
-        let mut heap = BinaryHeap::new();
-        heap.add(0);
-        heap.add(1);
-        heap.add(2);
-        heap.add(3);
-        heap.add(4);
-        heap.add(5);
-        heap.add(6);
-        heap.add(7);
-        heap.add(8);
-        heap.add(9);
-        heap.add(10);
-        heap.add(11);
-        heap.add(12);
-        heap.add(13);
-        heap.add(14);
-        assert_eq!(heap, tobe);
+        assert_eq!(test_node.remove(), Some(4));
+        let mut tobe = BinaryHeap {
+            array: Box::new([
+                Some(6),
+                Some(9),
+                Some(8),
+                Some(17),
+                Some(26),
+                Some(50),
+                Some(16),
+                Some(19),
+                Some(69),
+                Some(32),
+                Some(93),
+                Some(55),
+                None,
+                None,
+                None,
+            ]),
+            n: 12,
+        };
+        assert_eq!(test_node, tobe);
+    }
+    #[test]
+    fn add_test() {
+        let mut test_node = BinaryHeap {
+            array: Box::new([
+                Some(4),
+                Some(9),
+                Some(8),
+                Some(17),
+                Some(26),
+                Some(50),
+                Some(16),
+                Some(19),
+                Some(69),
+                Some(32),
+                Some(93),
+                Some(55),
+                None,
+                None,
+                None,
+            ]),
+            n: 12,
+        };
+        test_node.add(6);
+        let tobe = BinaryHeap {
+            array: Box::new([
+                Some(4),
+                Some(9),
+                Some(6),
+                Some(17),
+                Some(26),
+                Some(8),
+                Some(16),
+                Some(19),
+                Some(69),
+                Some(32),
+                Some(93),
+                Some(55),
+                Some(50),
+                None,
+                None,
+            ]),
+            n: 13,
+        };
+        assert_eq!(test_node, tobe);
     }
 }
