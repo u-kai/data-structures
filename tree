@@ -1,9 +1,9 @@
-BinaryTrie {
+tobe = BinaryTrie {
     root: WrapNode(
         Some(
             RefCell {
                 value: Node {
-                    x: DummyNode,
+                    x: PathNode,
                     jump: WrapLeaf(
                         None,
                     ),
@@ -11,7 +11,7 @@ BinaryTrie {
                         Some(
                             RefCell {
                                 value: Node {
-                                    x: DummyNode,
+                                    x: PathNode,
                                     jump: WrapLeaf(
                                         Some(
                                             (Weak),
@@ -24,7 +24,7 @@ BinaryTrie {
                                         Some(
                                             RefCell {
                                                 value: Node {
-                                                    x: DummyNode,
+                                                    x: PathNode,
                                                     jump: WrapLeaf(
                                                         Some(
                                                             (Weak),
@@ -37,7 +37,7 @@ BinaryTrie {
                                                         Some(
                                                             RefCell {
                                                                 value: Node {
-                                                                    x: DummyNode,
+                                                                    x: PathNode,
                                                                     jump: WrapLeaf(
                                                                         Some(
                                                                             (Weak),
@@ -65,10 +65,14 @@ BinaryTrie {
                                                                                         ),
                                                                                     ),
                                                                                     prev: WrapLeaf(
-                                                                                        None,
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
                                                                                     ),
                                                                                     next: WrapLeaf(
-                                                                                        None,
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
                                                                                     ),
                                                                                 },
                                                                             },
@@ -126,7 +130,7 @@ BinaryTrie {
                         Some(
                             RefCell {
                                 value: Node {
-                                    x: DummyNode,
+                                    x: PathNode,
                                     jump: WrapLeaf(
                                         Some(
                                             (Weak),
@@ -139,7 +143,7 @@ BinaryTrie {
                                         Some(
                                             RefCell {
                                                 value: Node {
-                                                    x: DummyNode,
+                                                    x: PathNode,
                                                     jump: WrapLeaf(
                                                         Some(
                                                             (Weak),
@@ -149,7 +153,7 @@ BinaryTrie {
                                                         Some(
                                                             RefCell {
                                                                 value: Node {
-                                                                    x: DummyNode,
+                                                                    x: PathNode,
                                                                     jump: WrapLeaf(
                                                                         Some(
                                                                             (Weak),
@@ -177,10 +181,14 @@ BinaryTrie {
                                                                                         ),
                                                                                     ),
                                                                                     prev: WrapLeaf(
-                                                                                        None,
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
                                                                                     ),
                                                                                     next: WrapLeaf(
-                                                                                        None,
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
                                                                                     ),
                                                                                 },
                                                                             },
@@ -242,6 +250,64 @@ BinaryTrie {
                     ),
                     prev: WrapLeaf(
                         None,
+                    ),
+                    next: WrapLeaf(
+                        None,
+                    ),
+                },
+            },
+        ),
+    ),
+    min_prev: WrapNode(
+        Some(
+            RefCell {
+                value: Node {
+                    x: PathNode,
+                    jump: WrapLeaf(
+                        None,
+                    ),
+                    right: WrapNode(
+                        None,
+                    ),
+                    left: WrapNode(
+                        None,
+                    ),
+                    parent: ParentNode(
+                        None,
+                    ),
+                    prev: WrapLeaf(
+                        None,
+                    ),
+                    next: WrapLeaf(
+                        Some(
+                            (Weak),
+                        ),
+                    ),
+                },
+            },
+        ),
+    ),
+    max_next: WrapNode(
+        Some(
+            RefCell {
+                value: Node {
+                    x: PathNode,
+                    jump: WrapLeaf(
+                        None,
+                    ),
+                    right: WrapNode(
+                        None,
+                    ),
+                    left: WrapNode(
+                        None,
+                    ),
+                    parent: ParentNode(
+                        None,
+                    ),
+                    prev: WrapLeaf(
+                        Some(
+                            (Weak),
+                        ),
                     ),
                     next: WrapLeaf(
                         None,
