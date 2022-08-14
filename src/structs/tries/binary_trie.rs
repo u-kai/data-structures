@@ -25,6 +25,17 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
             w,
         }
     }
+    pub fn find(&self, x: T) -> bool {
+        let num_x = x.to_usize();
+        let mut next = self.min_prev.next();
+        while next.is_some() {
+            if next.num() == Some(num_x) {
+                return true;
+            }
+            next = next.next()
+        }
+        false
+    }
     pub fn add(&mut self, x: T) -> bool {
         let num_x = x.to_usize();
         if num_x > 2_i32.pow(self.w as u32) as usize {
@@ -453,6 +464,31 @@ mod binary_trie_test {
         assert_eq!(BinaryTrie::<i32>::calc_binary(8, 5), Binary::Zero);
     }
     #[test]
+    fn find_test() {
+        let mut tree = BinaryTrie::new(4);
+        tree.add(0);
+        tree.add(1);
+        tree.add(3);
+        tree.add(9);
+        tree.add(15);
+        assert!(tree.find(0));
+        assert!(tree.find(1));
+        assert!(!tree.find(2));
+        assert!(tree.find(3));
+        assert!(!tree.find(4));
+        assert!(!tree.find(5));
+        assert!(!tree.find(6));
+        assert!(!tree.find(7));
+        assert!(!tree.find(8));
+        assert!(tree.find(9));
+        assert!(!tree.find(10));
+        assert!(!tree.find(11));
+        assert!(!tree.find(12));
+        assert!(!tree.find(13));
+        assert!(!tree.find(14));
+        assert!(tree.find(15));
+    }
+    #[test]
     fn add_test() {
         let mut tree = BinaryTrie::new(4);
         let mut root = WrapNode::new_node();
@@ -556,7 +592,7 @@ mod binary_trie_test {
         };
         tree.add(15);
         assert_eq!(tree, tobe);
-        check_use_print(tree);
+        //check_use_print(tree);
     }
 
     fn check_use_print<T: ToUsize + Clone + PartialEq + Debug>(tree: BinaryTrie<T>) {
