@@ -87,7 +87,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                             return false;
                         }
                         if node.left().is_none() && node.jump().num() > Some(num_x) {
-                            node.set_jump(leaf.clone().to_leaf());
+                            node.set_jump(leaf.clone());
                         }
                         node = right;
                     } else {
@@ -95,19 +95,19 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                             let new_path_node = WrapNode::new_node();
                             node.set_right(new_path_node.clone());
                             if node.left().is_none() {
-                                node.set_jump(leaf.clone().to_leaf());
+                                node.set_jump(leaf.clone());
                             } else if node.jump().is_some() {
-                                node.set_jump(WrapLeaf(None))
+                                node.set_jump(WrapNode(None))
                             }
                             node = new_path_node.clone();
-                            node.set_jump(leaf.clone().to_leaf());
+                            node.set_jump(leaf.clone());
                         } else {
                             // case leaf parent
                             node.set_right(leaf.clone());
                             if node.left().is_none() {
-                                node.set_jump(leaf.clone().to_leaf());
+                                node.set_jump(leaf.clone());
                             } else if node.jump().is_some() {
-                                node.set_jump(WrapLeaf(None))
+                                node.set_jump(WrapNode(None))
                             }
                             let mut next = prev.next();
                             prev.set_next(leaf.clone().to_leaf());
@@ -122,27 +122,27 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                             return false;
                         }
                         if node.right().is_none() && node.jump().num() < Some(num_x) {
-                            node.set_jump(leaf.clone().to_leaf());
+                            node.set_jump(leaf.clone());
                         }
                         node = left;
                     } else {
                         if i != 1 {
                             if node.right().is_none() {
-                                node.set_jump(leaf.clone().to_leaf());
+                                node.set_jump(leaf.clone());
                             } else if node.jump().is_some() {
-                                node.set_jump(WrapLeaf(None))
+                                node.set_jump(WrapNode(None))
                             }
                             let new_path_node = WrapNode::new_node();
                             node.set_left(new_path_node.clone());
                             node = new_path_node.clone();
-                            node.set_jump(leaf.clone().to_leaf());
+                            node.set_jump(leaf.clone());
                         } else {
                             // case leaf parent
                             node.set_left(leaf.clone());
                             if node.right().is_none() {
-                                node.set_jump(leaf.clone().to_leaf());
+                                node.set_jump(leaf.clone());
                             } else if node.jump().is_some() {
-                                node.set_jump(WrapLeaf(None))
+                                node.set_jump(WrapNode(None))
                             }
                             let mut next = prev.next();
                             prev.set_next(leaf.clone().to_leaf());
@@ -272,10 +272,10 @@ mod binary_trie_test {
         let mut root_left_child_left_child_right_child = WrapNode::new_node();
         let mut leaf_3 = WrapNode::new_leaf(3);
 
-        root.set_jump(leaf_3.clone().to_leaf());
-        root_left_child.set_jump(leaf_3.clone().to_leaf());
-        root_left_child_left_child.set_jump(leaf_3.clone().to_leaf());
-        root_left_child_left_child_right_child.set_jump(leaf_3.clone().to_leaf());
+        root.set_jump(leaf_3.clone());
+        root_left_child.set_jump(leaf_3.clone());
+        root_left_child_left_child.set_jump(leaf_3.clone());
+        root_left_child_left_child_right_child.set_jump(leaf_3.clone());
         root_left_child_left_child_right_child.set_right(leaf_3.clone());
         root_left_child_left_child.set_right(root_left_child_left_child_right_child.clone());
         root_left_child.set_left(root_left_child_left_child.clone());
@@ -297,10 +297,10 @@ mod binary_trie_test {
         let mut root_right_child_left_child = WrapNode::new_node();
         let mut root_right_child_left_child_left_child = WrapNode::new_node();
         let leaf_9 = WrapNode::new_leaf(9);
-        root.set_jump(WrapLeaf(None));
-        root_right_child.set_jump(leaf_9.clone().to_leaf());
-        root_right_child_left_child.set_jump(leaf_9.clone().to_leaf());
-        root_right_child_left_child_left_child.set_jump(leaf_9.clone().to_leaf());
+        root.set_jump(WrapNode(None));
+        root_right_child.set_jump(leaf_9.clone());
+        root_right_child_left_child.set_jump(leaf_9.clone());
+        root_right_child_left_child_left_child.set_jump(leaf_9.clone());
         root_right_child_left_child_left_child.set_right(leaf_9.clone());
         root_right_child_left_child.set_left(root_right_child_left_child_left_child.clone());
         root_right_child.set_left(root_right_child_left_child.clone());
@@ -321,10 +321,10 @@ mod binary_trie_test {
         let mut leaf_1 = WrapNode::new_leaf(1);
         let mut root_left_child_left_child_left_child = WrapNode::new_node();
         root_left_child_left_child_left_child.set_right(leaf_1.clone());
-        root_left_child_left_child_left_child.set_jump(leaf_1.clone().to_leaf());
+        root_left_child_left_child_left_child.set_jump(leaf_1.clone());
         min_prev.set_next(leaf_1.clone().to_leaf());
         leaf_1.set_next(leaf_3.clone().to_leaf());
-        root_left_child_left_child.set_jump(WrapLeaf(None));
+        root_left_child_left_child.set_jump(WrapNode(None));
         root_left_child_left_child.set_left(root_left_child_left_child_left_child.clone());
         tree.add(1);
         let tobe = BinaryTrie {
@@ -336,7 +336,7 @@ mod binary_trie_test {
         assert_eq!(tree, tobe);
         let mut leaf_0 = WrapNode::new_leaf(0);
         root_left_child_left_child_left_child.set_left(leaf_0.clone());
-        root_left_child_left_child_left_child.set_jump(WrapLeaf(None));
+        root_left_child_left_child_left_child.set_jump(WrapNode(None));
         min_prev.set_next(leaf_0.clone().to_leaf());
         leaf_0.set_next(leaf_1.clone().to_leaf());
         let tobe = BinaryTrie {
@@ -350,12 +350,12 @@ mod binary_trie_test {
         let mut leaf_15 = WrapNode::new_leaf(15);
         let mut root_right_child_right_child = WrapNode::new_node();
         let mut root_right_child_right_child_right_child = WrapNode::new_node();
-        root_right_child_right_child_right_child.set_jump(leaf_15.clone().to_leaf());
+        root_right_child_right_child_right_child.set_jump(leaf_15.clone());
         root_right_child_right_child_right_child.set_right(leaf_15.clone());
-        root_right_child_right_child.set_jump(leaf_15.clone().to_leaf());
+        root_right_child_right_child.set_jump(leaf_15.clone());
         root_right_child_right_child.set_right(root_right_child_right_child_right_child.clone());
         root_right_child.set_right(root_right_child_right_child.clone());
-        root_right_child.set_jump(WrapLeaf(None));
+        root_right_child.set_jump(WrapNode(None));
         max_next.set_prev(leaf_15.clone().to_leaf());
         leaf_15.set_prev(leaf_9.clone().to_leaf());
         let tobe = BinaryTrie {
@@ -468,7 +468,7 @@ impl<T: ToUsize + Clone + PartialEq> BinaryTrieValue<T> {
 #[derive(Debug)]
 struct Node<T: ToUsize + Clone + PartialEq> {
     x: BinaryTrieValue<T>,
-    jump: WrapLeaf<T>,
+    jump: WrapNode<T>,
     right: WrapNode<T>,
     left: WrapNode<T>,
     parent: ParentNode<T>,
@@ -480,7 +480,7 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
     fn new_leaf(x: T) -> Self {
         Self {
             x: BinaryTrieValue::new_leaf(x),
-            jump: WrapLeaf::new_none(),
+            jump: WrapNode::new_none(),
             right: WrapNode::new_none(),
             left: WrapNode::new_none(),
             parent: ParentNode::new_none(),
@@ -491,7 +491,7 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
     fn new_node() -> Self {
         Self {
             x: BinaryTrieValue::new_node(),
-            jump: WrapLeaf::new_none(),
+            jump: WrapNode::new_none(),
             right: WrapNode::new_none(),
             left: WrapNode::new_none(),
             parent: ParentNode::new_none(),
@@ -575,10 +575,10 @@ impl<T: ToUsize + Clone + PartialEq> WrapNode<T> {
     fn jump(&self) -> WrapNode<T> {
         self.0
             .as_ref()
-            .map(|node| node.borrow().jump.clone().to_node())
+            .map(|node| node.borrow().jump.clone())
             .unwrap_or(WrapNode(None))
     }
-    fn set_jump(&mut self, leaf: WrapLeaf<T>) {
+    fn set_jump(&mut self, leaf: WrapNode<T>) {
         self.0.as_ref().map(|node| node.borrow_mut().jump = leaf);
     }
     fn set_next(&mut self, leaf: WrapLeaf<T>) {
