@@ -1,0 +1,254 @@
+BinaryTrie {
+    root: WrapNode(
+        Some(
+            RefCell {
+                value: Node {
+                    x: DummyNode,
+                    jump: WrapLeaf(
+                        None,
+                    ),
+                    right: WrapNode(
+                        Some(
+                            RefCell {
+                                value: Node {
+                                    x: DummyNode,
+                                    jump: WrapLeaf(
+                                        Some(
+                                            (Weak),
+                                        ),
+                                    ),
+                                    right: WrapNode(
+                                        None,
+                                    ),
+                                    left: WrapNode(
+                                        Some(
+                                            RefCell {
+                                                value: Node {
+                                                    x: DummyNode,
+                                                    jump: WrapLeaf(
+                                                        Some(
+                                                            (Weak),
+                                                        ),
+                                                    ),
+                                                    right: WrapNode(
+                                                        None,
+                                                    ),
+                                                    left: WrapNode(
+                                                        Some(
+                                                            RefCell {
+                                                                value: Node {
+                                                                    x: DummyNode,
+                                                                    jump: WrapLeaf(
+                                                                        Some(
+                                                                            (Weak),
+                                                                        ),
+                                                                    ),
+                                                                    right: WrapNode(
+                                                                        Some(
+                                                                            RefCell {
+                                                                                value: Node {
+                                                                                    x: Leaf(
+                                                                                        9,
+                                                                                    ),
+                                                                                    jump: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                    right: WrapNode(
+                                                                                        None,
+                                                                                    ),
+                                                                                    left: WrapNode(
+                                                                                        None,
+                                                                                    ),
+                                                                                    parent: ParentNode(
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
+                                                                                    ),
+                                                                                    prev: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                    next: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                },
+                                                                            },
+                                                                        ),
+                                                                    ),
+                                                                    left: WrapNode(
+                                                                        None,
+                                                                    ),
+                                                                    parent: ParentNode(
+                                                                        Some(
+                                                                            (Weak),
+                                                                        ),
+                                                                    ),
+                                                                    prev: WrapLeaf(
+                                                                        None,
+                                                                    ),
+                                                                    next: WrapLeaf(
+                                                                        None,
+                                                                    ),
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                    parent: ParentNode(
+                                                        Some(
+                                                            (Weak),
+                                                        ),
+                                                    ),
+                                                    prev: WrapLeaf(
+                                                        None,
+                                                    ),
+                                                    next: WrapLeaf(
+                                                        None,
+                                                    ),
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                    parent: ParentNode(
+                                        Some(
+                                            (Weak),
+                                        ),
+                                    ),
+                                    prev: WrapLeaf(
+                                        None,
+                                    ),
+                                    next: WrapLeaf(
+                                        None,
+                                    ),
+                                },
+                            },
+                        ),
+                    ),
+                    left: WrapNode(
+                        Some(
+                            RefCell {
+                                value: Node {
+                                    x: DummyNode,
+                                    jump: WrapLeaf(
+                                        Some(
+                                            (Weak),
+                                        ),
+                                    ),
+                                    right: WrapNode(
+                                        None,
+                                    ),
+                                    left: WrapNode(
+                                        Some(
+                                            RefCell {
+                                                value: Node {
+                                                    x: DummyNode,
+                                                    jump: WrapLeaf(
+                                                        Some(
+                                                            (Weak),
+                                                        ),
+                                                    ),
+                                                    right: WrapNode(
+                                                        Some(
+                                                            RefCell {
+                                                                value: Node {
+                                                                    x: DummyNode,
+                                                                    jump: WrapLeaf(
+                                                                        Some(
+                                                                            (Weak),
+                                                                        ),
+                                                                    ),
+                                                                    right: WrapNode(
+                                                                        Some(
+                                                                            RefCell {
+                                                                                value: Node {
+                                                                                    x: Leaf(
+                                                                                        3,
+                                                                                    ),
+                                                                                    jump: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                    right: WrapNode(
+                                                                                        None,
+                                                                                    ),
+                                                                                    left: WrapNode(
+                                                                                        None,
+                                                                                    ),
+                                                                                    parent: ParentNode(
+                                                                                        Some(
+                                                                                            (Weak),
+                                                                                        ),
+                                                                                    ),
+                                                                                    prev: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                    next: WrapLeaf(
+                                                                                        None,
+                                                                                    ),
+                                                                                },
+                                                                            },
+                                                                        ),
+                                                                    ),
+                                                                    left: WrapNode(
+                                                                        None,
+                                                                    ),
+                                                                    parent: ParentNode(
+                                                                        Some(
+                                                                            (Weak),
+                                                                        ),
+                                                                    ),
+                                                                    prev: WrapLeaf(
+                                                                        None,
+                                                                    ),
+                                                                    next: WrapLeaf(
+                                                                        None,
+                                                                    ),
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                    left: WrapNode(
+                                                        None,
+                                                    ),
+                                                    parent: ParentNode(
+                                                        Some(
+                                                            (Weak),
+                                                        ),
+                                                    ),
+                                                    prev: WrapLeaf(
+                                                        None,
+                                                    ),
+                                                    next: WrapLeaf(
+                                                        None,
+                                                    ),
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                    parent: ParentNode(
+                                        Some(
+                                            (Weak),
+                                        ),
+                                    ),
+                                    prev: WrapLeaf(
+                                        None,
+                                    ),
+                                    next: WrapLeaf(
+                                        None,
+                                    ),
+                                },
+                            },
+                        ),
+                    ),
+                    parent: ParentNode(
+                        None,
+                    ),
+                    prev: WrapLeaf(
+                        None,
+                    ),
+                    next: WrapLeaf(
+                        None,
+                    ),
+                },
+            },
+        ),
+    ),
+    w: 4,
+}
