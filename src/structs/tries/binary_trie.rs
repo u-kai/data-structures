@@ -25,14 +25,83 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
             w,
         }
     }
+    fn find_prev(&self, x: T) -> WrapNode<T> {
+        let num_x = x.to_usize();
+        let mut node = self.root.clone();
+        for i in (1..=self.w).rev() {
+            let binary = Self::calc_binary(num_x, i);
+            match binary {
+                Binary::One => {
+                    let right = node.right();
+                    if right.is_some() {
+                        node = right;
+                    } else {
+                        node = node.jump();
+                        if node.num().is_none() {
+                            return WrapNode(None);
+                        }
+                        while node.num().unwrap() >= num_x {
+                            node = node.prev()
+                        }
+                        return node.clone();
+                    }
+                }
+                _ => {
+                    let left = node.left();
+                    if left.is_some() {
+                        node = left;
+                    } else {
+                        node = node.jump();
+                        if node.num().is_none() {
+                            return WrapNode(None);
+                        }
+                        while node.num().unwrap() >= num_x {
+                            node = node.prev()
+                        }
+                        return node.clone();
+                    }
+                }
+            }
+        }
+        if node.num() == Some(num_x) {
+            return node.prev();
+        } else {
+            WrapNode(None)
+        }
+    }
     pub fn find(&self, x: T) -> bool {
         let num_x = x.to_usize();
-        let mut next = self.min_prev.next();
-        while next.is_some() {
-            if next.num() == Some(num_x) {
-                return true;
+        let mut node = self.root.clone();
+        for i in (1..=self.w).rev() {
+            let binary = Self::calc_binary(num_x, i);
+            match binary {
+                Binary::One => {
+                    let right = node.right();
+                    if right.is_some() {
+                        node = right;
+                        if let Some(num) = node.num() {
+                            if num == num_x {
+                                return true;
+                            }
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                _ => {
+                    let left = node.left();
+                    if left.is_some() {
+                        node = left;
+                        if let Some(num) = node.num() {
+                            if num == num_x {
+                                return true;
+                            }
+                        }
+                    } else {
+                        return false;
+                    }
+                }
             }
-            next = next.next()
         }
         false
     }
@@ -67,6 +136,11 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                             } else {
                                 node.set_jump(WrapLeaf(None))
                             }
+                            let mut prev = self.find_prev(leaf.value().unwrap());
+                            let mut next = prev.next();
+                            //println!("{:#?}")
+                            //prev.set_next(leaf.clone().to_leaf());
+                            //next.set_prev(leaf.clone().to_leaf());
                             let mut prev = self.min_prev.clone();
                             let mut next = prev.next();
                             let mut next_value = next.num();
@@ -289,6 +363,9 @@ impl<T: ToUsize + Clone + PartialEq> WrapNode<T> {
                 node.borrow_mut().next = self.clone().to_leaf()
             }
         });
+
+        //        let old_prev = self.prev();
+        //old_prev.set_next(leaf)
         self.0.as_ref().map(|node| node.borrow_mut().prev = leaf);
     }
     fn set_left(&mut self, node: WrapNode<T>) {
@@ -450,6 +527,20 @@ mod binary_trie_test {
         }
     }
     #[test]
+    fn find_prev_test() {
+        let mut tree = BinaryTrie::new(4);
+        tree.add(0);
+        tree.add(1);
+        tree.add(3);
+        tree.add(9);
+        tree.add(15);
+        assert_eq!(tree.find_prev(0).num(), None);
+        assert_eq!(tree.find_prev(8).num(), Some(3));
+        assert_eq!(tree.find_prev(15).num(), Some(9));
+        let tree = BinaryTrie::new(4);
+        assert_eq!(tree.find_prev(0).num(), None);
+    }
+    #[test]
     fn calc_binary_test() {
         assert_eq!(BinaryTrie::<i32>::calc_binary(255, 1), Binary::One);
         assert_eq!(BinaryTrie::<i32>::calc_binary(255, 2), Binary::One);
@@ -592,6 +683,9 @@ mod binary_trie_test {
         };
         tree.add(15);
         assert_eq!(tree, tobe);
+        let mut leaf_14 = WrapNode::new_leaf(14);
+        leaf_15.set_prev(leaf_14.clone().to_leaf());
+        tree.add(14);
         //check_use_print(tree);
     }
 
