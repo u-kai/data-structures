@@ -79,78 +79,121 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         let mut prev = self.find_prev(leaf.value().unwrap());
         for i in (1..=self.w).rev() {
             let binary = Self::calc_binary(num_x, i);
-            match binary {
-                Binary::One => {
-                    let right = node.right();
-                    if right.is_some() {
-                        if i == 1 {
-                            return false;
-                        }
-                        if node.left().is_none() && node.jump().num() > Some(num_x) {
-                            node.set_jump(leaf.clone());
-                        }
-                        node = right;
-                    } else {
-                        if i != 1 {
-                            let new_path_node = StrongLinkNode::new_node();
-                            node.set_right(new_path_node.clone());
-                            if node.left().is_none() {
+            let child = node.child(binary);
+            if child.is_some() {
+                if i == 1 {
+                    return false;
+                }
+                if node.jump().is_some() {
+                    match binary {
+                        Binary::Zero => {
+                            if node.jump().num() < Some(num_x) {
                                 node.set_jump(leaf.clone());
-                            } else if node.jump().is_some() {
-                                node.set_jump(StrongLinkNode(None))
                             }
-                            node = new_path_node.clone();
-                            node.set_jump(leaf.clone());
-                        } else {
-                            // case leaf parent
-                            node.set_right(leaf.clone());
-                            if node.left().is_none() {
+                        }
+                        Binary::One => {
+                            if node.jump().num() > Some(num_x) {
                                 node.set_jump(leaf.clone());
-                            } else if node.jump().is_some() {
-                                node.set_jump(StrongLinkNode(None))
                             }
-                            let mut next = prev.next();
-                            prev.set_next(leaf.clone());
-                            next.set_prev(leaf.clone());
                         }
                     }
                 }
-                Binary::Zero => {
-                    let left = node.left();
-                    if left.is_some() {
-                        if i == 1 {
-                            return false;
-                        }
-                        if node.right().is_none() && node.jump().num() < Some(num_x) {
-                            node.set_jump(leaf.clone());
-                        }
-                        node = left;
-                    } else {
-                        if i != 1 {
-                            if node.right().is_none() {
-                                node.set_jump(leaf.clone());
-                            } else if node.jump().is_some() {
-                                node.set_jump(StrongLinkNode(None))
-                            }
-                            let new_path_node = StrongLinkNode::new_node();
-                            node.set_left(new_path_node.clone());
-                            node = new_path_node.clone();
-                            node.set_jump(leaf.clone());
-                        } else {
-                            // case leaf parent
-                            node.set_left(leaf.clone());
-                            if node.right().is_none() {
-                                node.set_jump(leaf.clone());
-                            } else if node.jump().is_some() {
-                                node.set_jump(StrongLinkNode(None))
-                            }
-                            let mut next = prev.next();
-                            prev.set_next(leaf.clone());
-                            next.set_prev(leaf.clone());
-                        }
+                node = child;
+            } else {
+                if i != 1 {
+                    let new_path_node = StrongLinkNode::new_node();
+                    node.set_child(new_path_node.clone(), binary);
+                    if node.child(binary.other()).is_none() {
+                        node.set_jump(leaf.clone())
+                    } else if node.jump().is_some() {
+                        node.set_jump(StrongLinkNode(None))
                     }
+                    node = new_path_node;
+                    node.set_jump(leaf.clone())
+                } else {
+                    node.set_child(leaf.clone(), binary);
+                    if node.child(binary.other()).is_none() {
+                        node.set_jump(leaf.clone());
+                    } else if node.jump().is_some() {
+                        node.set_jump(StrongLinkNode(None))
+                    }
+                    let mut next = prev.next();
+                    prev.set_next(leaf.clone());
+                    next.set_prev(leaf.clone());
                 }
             }
+            //match binary {
+            //Binary::One => {
+            //let right = node.right();
+            //if right.is_some() {
+            //if i == 1 {
+            //return false;
+            //}
+            //if node.left().is_none() && node.jump().num() > Some(num_x) {
+            //node.set_jump(leaf.clone());
+            //}
+            //node = right;
+            //} else {
+            //if i != 1 {
+            //let new_path_node = StrongLinkNode::new_node();
+            //node.set_right(new_path_node.clone());
+            //if node.left().is_none() {
+            //node.set_jump(leaf.clone());
+            //} else if node.jump().is_some() {
+            //node.set_jump(StrongLinkNode(None))
+            //}
+            //node = new_path_node.clone();
+            //node.set_jump(leaf.clone());
+            //} else {
+            //// case leaf parent
+            //node.set_right(leaf.clone());
+            //if node.left().is_none() {
+            //node.set_jump(leaf.clone());
+            //} else if node.jump().is_some() {
+            //node.set_jump(StrongLinkNode(None))
+            //}
+            //let mut next = prev.next();
+            //prev.set_next(leaf.clone());
+            //next.set_prev(leaf.clone());
+            //}
+            //}
+            //}
+            //Binary::Zero => {
+            //let left = node.left();
+            //if left.is_some() {
+            //if i == 1 {
+            //return false;
+            //}
+            //if node.right().is_none() && node.jump().num() < Some(num_x) {
+            //node.set_jump(leaf.clone());
+            //}
+            //node = left;
+            //} else {
+            //if i != 1 {
+            //if node.right().is_none() {
+            //node.set_jump(leaf.clone());
+            //} else if node.jump().is_some() {
+            //node.set_jump(StrongLinkNode(None))
+            //}
+            //let new_path_node = StrongLinkNode::new_node();
+            //node.set_left(new_path_node.clone());
+            //node = new_path_node.clone();
+            //node.set_jump(leaf.clone());
+            //} else {
+            //// case leaf parent
+            //node.set_left(leaf.clone());
+            //if node.right().is_none() {
+            //node.set_jump(leaf.clone());
+            //} else if node.jump().is_some() {
+            //node.set_jump(StrongLinkNode(None))
+            //}
+            //let mut next = prev.next();
+            //prev.set_next(leaf.clone());
+            //next.set_prev(leaf.clone());
+            //}
+            //}
+            //}
+            //}
         }
         true
     }
@@ -300,6 +343,8 @@ mod binary_trie_test {
             max_next,
             w: 4,
         };
+        rec_print(tobe.root.clone(), "tree_2 root");
+        rec_print(tree.root.clone(), "tree root");
         assert_eq!(tree, tobe);
 
         let mut root_right_child = StrongLinkNode::new_node();
@@ -381,7 +426,9 @@ mod binary_trie_test {
         tree_2.add(3);
         tree_2.add(9);
         tree_2.add(15);
-        assert_eq!(tree, tree_2);
+        rec_print(tree_2.root, "tree_2 root");
+        rec_print(tree.root, "tree root");
+        //assert_eq!(tree, tree_2);
     }
 
     fn check_use_print<T: ToUsize + Clone + PartialEq + Debug>(tree: BinaryTrie<T>) {
@@ -461,10 +508,18 @@ enum BinaryTrieValue<T: ToUsize + Clone + PartialEq> {
     PathNode,
     Leaf(T),
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Binary {
     Zero,
     One,
+}
+impl Binary {
+    fn other(&self) -> Self {
+        match self {
+            Self::Zero => Self::One,
+            Self::One => Self::Zero,
+        }
+    }
 }
 impl<T: ToUsize + Clone + PartialEq> BinaryTrieValue<T> {
     fn new_leaf(x: T) -> Self {
@@ -477,6 +532,7 @@ impl<T: ToUsize + Clone + PartialEq> BinaryTrieValue<T> {
 #[derive(Debug)]
 struct Node<T: ToUsize + Clone + PartialEq> {
     x: BinaryTrieValue<T>,
+    children: [StrongLinkNode<T>; 2],
     jump: StrongLinkNode<T>,
     right: StrongLinkNode<T>,
     left: StrongLinkNode<T>,
@@ -489,6 +545,7 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
     fn new_leaf(x: T) -> Self {
         Self {
             x: BinaryTrieValue::new_leaf(x),
+            children: [StrongLinkNode::new_none(), StrongLinkNode::new_none()],
             jump: StrongLinkNode::new_none(),
             right: StrongLinkNode::new_none(),
             left: StrongLinkNode::new_none(),
@@ -500,6 +557,7 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
     fn new_node() -> Self {
         Self {
             x: BinaryTrieValue::new_node(),
+            children: [StrongLinkNode::new_none(), StrongLinkNode::new_none()],
             jump: StrongLinkNode::new_none(),
             right: StrongLinkNode::new_none(),
             left: StrongLinkNode::new_none(),
@@ -559,17 +617,28 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
             None
         }
     }
-    fn left(&self) -> StrongLinkNode<T> {
+    fn child(&self, binary: Binary) -> StrongLinkNode<T> {
         self.0
             .as_ref()
-            .map(|node| node.borrow().left.clone())
+            .map(|node| match binary {
+                Binary::Zero => node.borrow().children[0].clone(),
+                Binary::One => node.borrow().children[1].clone(),
+            })
             .unwrap_or(StrongLinkNode(None))
     }
+    fn left(&self) -> StrongLinkNode<T> {
+        self.child(Binary::Zero)
+        //self.0
+        //.as_ref()
+        //.map(|node| node.borrow().left.clone())
+        //.unwrap_or(StrongLinkNode(None))
+    }
     fn right(&self) -> StrongLinkNode<T> {
-        self.0
-            .as_ref()
-            .map(|node| node.borrow().right.clone())
-            .unwrap_or(StrongLinkNode(None))
+        self.child(Binary::One)
+        //self.0
+        //.as_ref()
+        //.map(|node| node.borrow().right.clone())
+        //.unwrap_or(StrongLinkNode(None))
     }
     fn parent(&self) -> StrongLinkNode<T> {
         self.0
@@ -600,13 +669,30 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
             .as_ref()
             .map(|node| node.borrow_mut().prev = leaf.to_weak());
     }
-    fn set_left(&mut self, node: StrongLinkNode<T>) {
+    fn set_child(&mut self, node: StrongLinkNode<T>, binary: Binary) {
         node.clone().set_parent(self.clone());
-        self.0.as_ref().map(|this| this.borrow_mut().left = node);
+        match binary {
+            Binary::Zero => {
+                self.0
+                    .as_ref()
+                    .map(|this| this.borrow_mut().children[0] = node);
+            }
+            Binary::One => {
+                self.0
+                    .as_ref()
+                    .map(|this| this.borrow_mut().children[1] = node);
+            }
+        }
+    }
+    fn set_left(&mut self, node: StrongLinkNode<T>) {
+        self.set_child(node, Binary::Zero)
+        //node.clone().set_parent(self.clone());
+        //self.0.as_ref().map(|this| this.borrow_mut().left = node);
     }
     fn set_right(&mut self, node: StrongLinkNode<T>) {
-        node.clone().set_parent(self.clone());
-        self.0.as_ref().map(|this| this.borrow_mut().right = node);
+        self.set_child(node, Binary::One)
+        //node.clone().set_parent(self.clone());
+        //self.0.as_ref().map(|this| this.borrow_mut().right = node);
     }
     fn set_parent(&mut self, node: StrongLinkNode<T>) {
         self.0
