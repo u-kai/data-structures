@@ -66,17 +66,10 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                     return false;
                 }
                 if node.jump().is_some() {
-                    match binary {
-                        Binary::Zero => {
-                            if node.jump().num() < Some(num_x) {
-                                node.set_jump(leaf.clone());
-                            }
-                        }
-                        Binary::One => {
-                            if node.jump().num() > Some(num_x) {
-                                node.set_jump(leaf.clone());
-                            }
-                        }
+                    if binary == Binary::Zero && node.jump().num() < Some(num_x)
+                        || binary == Binary::One && node.jump().num() > Some(num_x)
+                    {
+                        node.set_jump(leaf.clone());
                     }
                 }
                 node = child;
@@ -103,78 +96,6 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
                     next.set_prev(leaf.clone());
                 }
             }
-            //match binary {
-            //Binary::One => {
-            //let right = node.right();
-            //if right.is_some() {
-            //if i == 1 {
-            //return false;
-            //}
-            //if node.left().is_none() && node.jump().num() > Some(num_x) {
-            //node.set_jump(leaf.clone());
-            //}
-            //node = right;
-            //} else {
-            //if i != 1 {
-            //let new_path_node = StrongLinkNode::new_node();
-            //node.set_right(new_path_node.clone());
-            //if node.left().is_none() {
-            //node.set_jump(leaf.clone());
-            //} else if node.jump().is_some() {
-            //node.set_jump(StrongLinkNode(None))
-            //}
-            //node = new_path_node.clone();
-            //node.set_jump(leaf.clone());
-            //} else {
-            //// case leaf parent
-            //node.set_right(leaf.clone());
-            //if node.left().is_none() {
-            //node.set_jump(leaf.clone());
-            //} else if node.jump().is_some() {
-            //node.set_jump(StrongLinkNode(None))
-            //}
-            //let mut next = prev.next();
-            //prev.set_next(leaf.clone());
-            //next.set_prev(leaf.clone());
-            //}
-            //}
-            //}
-            //Binary::Zero => {
-            //let left = node.left();
-            //if left.is_some() {
-            //if i == 1 {
-            //return false;
-            //}
-            //if node.right().is_none() && node.jump().num() < Some(num_x) {
-            //node.set_jump(leaf.clone());
-            //}
-            //node = left;
-            //} else {
-            //if i != 1 {
-            //if node.right().is_none() {
-            //node.set_jump(leaf.clone());
-            //} else if node.jump().is_some() {
-            //node.set_jump(StrongLinkNode(None))
-            //}
-            //let new_path_node = StrongLinkNode::new_node();
-            //node.set_left(new_path_node.clone());
-            //node = new_path_node.clone();
-            //node.set_jump(leaf.clone());
-            //} else {
-            //// case leaf parent
-            //node.set_left(leaf.clone());
-            //if node.right().is_none() {
-            //node.set_jump(leaf.clone());
-            //} else if node.jump().is_some() {
-            //node.set_jump(StrongLinkNode(None))
-            //}
-            //let mut next = prev.next();
-            //prev.set_next(leaf.clone());
-            //next.set_prev(leaf.clone());
-            //}
-            //}
-            //}
-            //}
         }
         true
     }
