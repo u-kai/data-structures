@@ -15,9 +15,8 @@ pub struct BinaryTrie<T: ToUsize + Clone + PartialEq + Debug> {
 impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     pub fn new(w: usize) -> Self {
         let mut min_prev = StrongLinkNode::new_node();
-        let mut max_next = StrongLinkNode::new_node();
+        let max_next = StrongLinkNode::new_node();
         min_prev.set_next(max_next.clone());
-        max_next.set_prev(min_prev.clone());
         Self {
             root: StrongLinkNode::<T>::new_node(),
             min_prev,
@@ -45,7 +44,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
             }
         }
         if node.num() == Some(num_x) {
-            return node.prev();
+            node.prev()
         } else {
             self.min_prev.clone()
         }
@@ -119,14 +118,61 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         }
     }
     pub fn remove(&mut self, x: T) -> Option<T> {
-        None
+        let num_x = x.to_usize();
+        let remove_node = self.find_leaf(x);
+        let mut prev = remove_node.prev();
+        let mut next = remove_node.next();
+        prev.set_next(next.clone());
+        next.set_prev(prev.clone());
+
+        if remove_node.is_some() {
+            let mut parent = remove_node.parent();
+            for i in 1..=self.w {
+                if parent == self.root {
+                    println!("root");
+                    println!("remove_node {:#?} ", remove_node.value());
+                }
+                let binary = Self::calc_binary(num_x, i);
+                let child = parent.child(binary);
+                if !child.has_child() {
+                    parent.set_child(StrongLinkNode(None), binary);
+                }
+                if parent.jump() == remove_node {
+                    match binary {
+                        Binary::Zero => {
+                            let jump = parent.child(binary).get_max_child();
+                            parent.set_jump(jump);
+                        }
+                        Binary::One => {
+                            let jump = parent.child(binary).get_min_child();
+                            parent.set_jump(jump);
+                        }
+                    }
+                }
+                if parent.child(binary).is_none() && parent.jump().is_none() {
+                    match binary.other() {
+                        Binary::Zero => {
+                            let jump = parent.child(binary.other()).get_max_child();
+                            parent.set_jump(jump);
+                        }
+                        Binary::One => {
+                            let jump = parent.child(binary.other()).get_min_child();
+                            parent.set_jump(jump);
+                        }
+                    }
+                }
+                parent = parent.parent();
+            }
+            remove_node.value()
+        } else {
+            None
+        }
     }
 }
 
 #[cfg(test)]
 
 mod binary_trie_test {
-
     use super::*;
     impl ToUsize for i32 {
         fn to_usize(&self) -> usize {
@@ -162,6 +208,9 @@ mod binary_trie_test {
         assert_eq!(tree.remove(1), None);
         assert_eq!(tree.remove(0), None);
         assert_eq!(tree.remove(15), None);
+        //check_use_print(tree);
+        //let tobe = BinaryTrie::new(4);
+        //assert_eq!(tree, tobe);
     }
     #[test]
     fn find_prev_test() {
@@ -328,9 +377,11 @@ mod binary_trie_test {
         tree_2.add(3);
         tree_2.add(9);
         tree_2.add(15);
-        rec_print(tree_2.root, "tree_2 root");
-        rec_print(tree.root, "tree root");
-        //assert_eq!(tree, tree_2);
+
+        assert_eq!(tree.root.get_min_child(), leaf_0);
+        assert_eq!(tree.root.get_max_child(), leaf_15);
+        assert_eq!(root_right_child_left_child.get_max_child(), leaf_9);
+        assert_eq!(tree, tree_2);
     }
 
     fn check_use_print<T: ToUsize + Clone + PartialEq + Debug>(tree: BinaryTrie<T>) {
@@ -358,6 +409,7 @@ mod binary_trie_test {
         if node.value().is_some() {
             println!("value = {:?}", node.value());
         }
+        println!("parent = {:?}", node.parent().is_some());
         println!(
             "left = {:?}  right = {:?}",
             node.left().is_some(),
@@ -381,8 +433,42 @@ mod binary_trie_test {
     }
 }
 
-impl<T: ToUsize + Clone + PartialEq> PartialEq for Node<T> {
+impl<T: ToUsize + Clone + PartialEq + Debug> PartialEq for Node<T> {
     fn eq(&self, other: &Self) -> bool {
+        //if self.x != other.x {
+        //println!("self.x = {:?} other.x = {:?}", self.x, other.x)
+        //}
+        //if self.children != other.children {
+        //println!(
+        //"self.children = {:?} other.children = {:?}",
+        //self.children, other.children
+        //);
+        //println!();
+        //println!("node = {:#?}", self);
+        //println!();
+        //println!("other = {:#?}", other);
+        //}
+        //if self.parent.value() != other.parent.value() {
+        //println!();
+        //println!(
+        //"self.parent = {:?} other.parent = {:?}",
+        //self.parent.value(),
+        //other.parent.value()
+        //);
+        //println!();
+        //println!("node = {:#?}", self);
+        //println!();
+        //println!("other = {:#?}", other);
+        //}
+        //if self.prev.value() != other.prev.value() {
+        //println!("self.prev = {:?} other.prev = {:?}", self.prev, other.prev)
+        //}
+        //if self.next.value() != other.next.value() {
+        //println!("self.next = {:?} other.next = {:?}", self.next, other.next)
+        //}
+        //if self.jump.value() != other.jump.value() {
+        //println!("self.jump = {:?} other.jump = {:?}", self.jump, other.jump)
+        //}
         self.x == other.x
             && self.children == other.children
             && self.parent.value() == other.parent.value()
@@ -391,14 +477,14 @@ impl<T: ToUsize + Clone + PartialEq> PartialEq for Node<T> {
             && self.jump.value() == other.jump.value()
     }
 }
-impl<T: ToUsize + Clone + PartialEq> PartialEq for WeakLinkNode<T> {
+impl<T: ToUsize + Clone + PartialEq + Debug> PartialEq for WeakLinkNode<T> {
     fn eq(&self, other: &Self) -> bool {
         let self_node = self.0.as_ref().map(|node| node.upgrade());
         let other_node = other.0.as_ref().map(|node| node.upgrade());
         self_node == other_node
     }
 }
-impl<T: ToUsize + Clone + PartialEq> PartialEq for StrongLinkNode<T> {
+impl<T: ToUsize + Clone + PartialEq + Debug> PartialEq for StrongLinkNode<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
@@ -471,6 +557,28 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
     fn clone(&self) -> Self {
         StrongLinkNode(self.0.as_ref().map(|node| node.clone()))
     }
+    fn get_min_child(&self) -> StrongLinkNode<T> {
+        let mut node = self.clone();
+        while node.left().is_some() {
+            node = node.left();
+        }
+        if node.value().is_some() {
+            node
+        } else {
+            node.jump()
+        }
+    }
+    fn get_max_child(&self) -> StrongLinkNode<T> {
+        let mut node = self.clone();
+        while node.right().is_some() {
+            node = node.right();
+        }
+        if node.value().is_some() {
+            node
+        } else {
+            node.jump()
+        }
+    }
     fn next(&self) -> StrongLinkNode<T> {
         if let Some(next) = self.0.as_ref().map(|node| node.borrow().next.clone()) {
             next
@@ -511,6 +619,12 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
         } else {
             None
         }
+    }
+    fn has_child(&self) -> bool {
+        self.right().is_some() || self.left().is_some()
+    }
+    fn has_right_and_left_child(&self) -> bool {
+        self.right().is_some() && self.left().is_some()
     }
     fn child(&self, binary: Binary) -> StrongLinkNode<T> {
         self.0

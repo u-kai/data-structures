@@ -1,95 +1,114 @@
 tree-root
-parent = None
 left = true  right = true
 
 tree-root-left
-parent = None
 left = true  right = false
 jump = Some(1)
 
 tree-root-left-left
-parent = None
 left = true  right = false
 jump = Some(1)
 
 tree-root-left-left-left
-parent = None
-left = false  right = true
-jump = Some(1)
+left = true  right = true
+
+tree-root-left-left-left-left
+value = Some(0)
+left = false  right = false
+prev = None
+next = Some(1)
 
 tree-root-left-left-left-right
 value = Some(1)
-parent = None
 left = false  right = false
-prev = None
+prev = Some(0)
 next = Some(9)
 
 tree-root-right
-parent = None
-left = true  right = false
-jump = Some(9)
+left = true  right = true
 
 tree-root-right-left
-parent = None
 left = true  right = false
 jump = Some(9)
 
 tree-root-right-left-left
-parent = None
 left = false  right = true
 jump = Some(9)
 
 tree-root-right-left-left-right
 value = Some(9)
-parent = Some(1)
 left = false  right = false
 prev = Some(1)
+next = Some(15)
+
+tree-root-right-right
+left = false  right = true
+jump = Some(15)
+
+tree-root-right-right-right
+left = false  right = true
+jump = Some(15)
+
+tree-root-right-right-right-right
+value = Some(15)
+left = false  right = false
+prev = Some(9)
 next = None
 
 tobe-root
-parent = None
 left = true  right = true
 
 tobe-root-left
-parent = None
 left = true  right = false
 jump = Some(1)
 
 tobe-root-left-left
-parent = None
 left = true  right = false
 jump = Some(1)
 
 tobe-root-left-left-left
-parent = None
-left = false  right = true
-jump = Some(1)
+left = true  right = true
+
+tobe-root-left-left-left-left
+value = Some(0)
+left = false  right = false
+prev = None
+next = Some(1)
 
 tobe-root-left-left-left-right
 value = Some(1)
-parent = None
 left = false  right = false
-prev = None
+prev = Some(0)
 next = Some(9)
 
 tobe-root-right
-parent = None
-left = true  right = false
-jump = Some(9)
+left = true  right = true
 
 tobe-root-right-left
-parent = None
 left = true  right = false
 jump = Some(9)
 
 tobe-root-right-left-left
-parent = None
 left = false  right = true
 jump = Some(9)
 
 tobe-root-right-left-left-right
 value = Some(9)
-parent = None
 left = false  right = false
 prev = Some(1)
+next = Some(15)
+
+tobe-root-right-right
+left = false  right = true
+jump = Some(15)
+
+tobe-root-right-right-right
+left = false  right = true
+jump = Some(15)
+
+tobe-root-right-right-right-right
+value = Some(15)
+left = false  right = false
+prev = Some(9)
 next = None
+from prev
