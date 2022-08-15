@@ -17,46 +17,22 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         let mut min_prev = StrongLinkNode::new_node();
         let max_next = StrongLinkNode::new_node();
         min_prev.set_next(max_next.clone());
+        let root = StrongLinkNode::new_node();
         Self {
-            root: StrongLinkNode::<T>::new_node(),
+            root,
             min_prev,
             max_next,
             w,
         }
     }
-    fn find_prev(&self, x: T) -> StrongLinkNode<T> {
-        let num_x = x.to_usize();
-        let mut node = self.root.clone();
-        for i in (1..=self.w).rev() {
-            let binary = Self::calc_binary(num_x, i);
-            let child = node.child(binary);
-            if child.is_some() {
-                node = child
-            } else {
-                node = node.jump();
-                if node.is_none() {
-                    return self.min_prev.clone();
-                }
-                if node.num() >= Some(num_x) {
-                    node = node.prev()
-                }
-                return node;
-            }
-        }
-        if node.num() == Some(num_x) {
-            node.prev()
-        } else {
-            self.min_prev.clone()
-        }
-    }
     pub fn add(&mut self, x: T) -> bool {
-        let num_x = x.to_usize();
-        if num_x > 2_i32.pow(self.w as u32) as usize {
-            panic!("num_x is too big! please use more large w at new method")
+        if !self.in_range(&x) {
+            panic!("x is too big! please use small x or large w at new method")
         }
+        let num_x = x.to_usize();
         let leaf = StrongLinkNode::new_leaf(x);
         let mut node = self.root.clone();
-        let mut prev = self.find_prev(leaf.value().unwrap());
+        let mut prev = self.find_prev(num_x);
         for i in (1..=self.w).rev() {
             let binary = Self::calc_binary(num_x, i);
             let child = node.child(binary);
@@ -100,7 +76,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     }
     fn find_leaf(&self, x: T) -> StrongLinkNode<T> {
         let num_x = x.to_usize();
-        let prev = self.find_prev(x);
+        let prev = self.find_prev(num_x);
         if prev.next().num() == Some(num_x) {
             prev.next()
         } else {
@@ -110,8 +86,8 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     pub fn find(&self, x: T) -> bool {
         self.find_leaf(x).is_some()
     }
-    fn calc_binary(i: usize, digit_num: usize) -> Binary {
-        if (i >> (digit_num - 1) & 1) == 1 {
+    fn calc_binary(num: usize, digit_num: usize) -> Binary {
+        if (num >> (digit_num - 1) & 1) == 1 {
             Binary::One
         } else {
             Binary::Zero
@@ -128,38 +104,16 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         if remove_node.is_some() {
             let mut parent = remove_node.parent();
             for i in 1..=self.w {
-                if parent == self.root {
-                    println!("root");
-                    println!("remove_node {:#?} ", remove_node.value());
-                }
                 let binary = Self::calc_binary(num_x, i);
                 let child = parent.child(binary);
                 if !child.has_child() {
                     parent.set_child(StrongLinkNode(None), binary);
                 }
                 if parent.jump() == remove_node {
-                    match binary {
-                        Binary::Zero => {
-                            let jump = parent.child(binary).get_max_child();
-                            parent.set_jump(jump);
-                        }
-                        Binary::One => {
-                            let jump = parent.child(binary).get_min_child();
-                            parent.set_jump(jump);
-                        }
-                    }
+                    parent.update_jump(binary)
                 }
                 if parent.child(binary).is_none() && parent.jump().is_none() {
-                    match binary.other() {
-                        Binary::Zero => {
-                            let jump = parent.child(binary.other()).get_max_child();
-                            parent.set_jump(jump);
-                        }
-                        Binary::One => {
-                            let jump = parent.child(binary.other()).get_min_child();
-                            parent.set_jump(jump);
-                        }
-                    }
+                    parent.update_jump(binary.other())
                 }
                 parent = parent.parent();
             }
@@ -167,6 +121,34 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         } else {
             None
         }
+    }
+    fn find_prev(&self, num: usize) -> StrongLinkNode<T> {
+        let mut node = self.root.clone();
+        for i in (1..=self.w).rev() {
+            let binary = Self::calc_binary(num, i);
+            let child = node.child(binary);
+            if child.is_some() {
+                node = child
+            } else {
+                node = node.jump();
+                if node.is_none() {
+                    return self.min_prev.clone();
+                }
+                if node.num() >= Some(num) {
+                    node = node.prev()
+                }
+                return node;
+            }
+        }
+        if node.num() == Some(num) {
+            node.prev()
+        } else {
+            self.min_prev.clone()
+        }
+    }
+    fn in_range(&self, x: &T) -> bool {
+        let num_x = x.to_usize();
+        num_x < 2_i32.pow(self.w as u32) as usize
     }
 }
 
@@ -208,9 +190,6 @@ mod binary_trie_test {
         assert_eq!(tree.remove(1), None);
         assert_eq!(tree.remove(0), None);
         assert_eq!(tree.remove(15), None);
-        //check_use_print(tree);
-        //let tobe = BinaryTrie::new(4);
-        //assert_eq!(tree, tobe);
     }
     #[test]
     fn find_prev_test() {
@@ -223,7 +202,7 @@ mod binary_trie_test {
         assert_eq!(tree.find_prev(0).num(), None);
         assert_eq!(tree.find_prev(8).num(), Some(3));
         assert_eq!(tree.find_prev(15).num(), Some(9));
-        let tree = BinaryTrie::new(4);
+        let tree = BinaryTrie::<i32>::new(4);
         assert_eq!(tree.find_prev(0).num(), None);
     }
     #[test]
@@ -556,6 +535,18 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
     }
     fn clone(&self) -> Self {
         StrongLinkNode(self.0.as_ref().map(|node| node.clone()))
+    }
+    fn update_jump(&mut self, binary: Binary) {
+        match binary {
+            Binary::Zero => {
+                let jump = self.child(binary).get_max_child();
+                self.set_jump(jump);
+            }
+            Binary::One => {
+                let jump = self.child(binary).get_min_child();
+                self.set_jump(jump);
+            }
+        }
     }
     fn get_min_child(&self) -> StrongLinkNode<T> {
         let mut node = self.clone();
