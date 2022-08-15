@@ -30,37 +30,18 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         let mut node = self.root.clone();
         for i in (1..=self.w).rev() {
             let binary = Self::calc_binary(num_x, i);
-            match binary {
-                Binary::One => {
-                    let right = node.right();
-                    if right.is_some() {
-                        node = right;
-                    } else {
-                        node = node.jump();
-                        if node.num().is_none() {
-                            return self.min_prev.clone();
-                        }
-                        while node.num() >= Some(num_x) {
-                            node = node.prev();
-                        }
-                        return node.clone();
-                    }
+            let child = node.child(binary);
+            if child.is_some() {
+                node = child
+            } else {
+                node = node.jump();
+                if node.is_none() {
+                    return self.min_prev.clone();
                 }
-                _ => {
-                    let left = node.left();
-                    if left.is_some() {
-                        node = left;
-                    } else {
-                        node = node.jump();
-                        if node.num().is_none() {
-                            return self.min_prev.clone();
-                        }
-                        while node.num() >= Some(num_x) {
-                            node = node.prev();
-                        }
-                        return node.clone();
-                    }
+                if node.num() >= Some(num_x) {
+                    node = node.prev()
                 }
+                return node;
             }
         }
         if node.num() == Some(num_x) {
