@@ -384,8 +384,7 @@ mod binary_trie_test {
 impl<T: ToUsize + Clone + PartialEq> PartialEq for Node<T> {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x
-            && self.left == other.left
-            && self.right == other.right
+            && self.children == other.children
             && self.parent.value() == other.parent.value()
             && self.prev.value() == other.prev.value()
             && self.next.value() == other.next.value()
@@ -436,8 +435,6 @@ struct Node<T: ToUsize + Clone + PartialEq> {
     x: BinaryTrieValue<T>,
     children: [StrongLinkNode<T>; 2],
     jump: StrongLinkNode<T>,
-    right: StrongLinkNode<T>,
-    left: StrongLinkNode<T>,
     parent: WeakLinkNode<T>,
     prev: WeakLinkNode<T>,
     next: StrongLinkNode<T>,
@@ -449,8 +446,6 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
             x: BinaryTrieValue::new_leaf(x),
             children: [StrongLinkNode::new_none(), StrongLinkNode::new_none()],
             jump: StrongLinkNode::new_none(),
-            right: StrongLinkNode::new_none(),
-            left: StrongLinkNode::new_none(),
             parent: WeakLinkNode::new_none(),
             prev: WeakLinkNode::new_none(),
             next: StrongLinkNode::new_none(),
@@ -461,8 +456,6 @@ impl<T: ToUsize + Clone + PartialEq> Node<T> {
             x: BinaryTrieValue::new_node(),
             children: [StrongLinkNode::new_none(), StrongLinkNode::new_none()],
             jump: StrongLinkNode::new_none(),
-            right: StrongLinkNode::new_none(),
-            left: StrongLinkNode::new_none(),
             parent: WeakLinkNode::new_none(),
             prev: WeakLinkNode::new_none(),
             next: StrongLinkNode::new_none(),
@@ -530,17 +523,9 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
     }
     fn left(&self) -> StrongLinkNode<T> {
         self.child(Binary::Zero)
-        //self.0
-        //.as_ref()
-        //.map(|node| node.borrow().left.clone())
-        //.unwrap_or(StrongLinkNode(None))
     }
     fn right(&self) -> StrongLinkNode<T> {
         self.child(Binary::One)
-        //self.0
-        //.as_ref()
-        //.map(|node| node.borrow().right.clone())
-        //.unwrap_or(StrongLinkNode(None))
     }
     fn parent(&self) -> StrongLinkNode<T> {
         self.0
@@ -588,13 +573,9 @@ impl<T: ToUsize + Clone + PartialEq> StrongLinkNode<T> {
     }
     fn set_left(&mut self, node: StrongLinkNode<T>) {
         self.set_child(node, Binary::Zero)
-        //node.clone().set_parent(self.clone());
-        //self.0.as_ref().map(|this| this.borrow_mut().left = node);
     }
     fn set_right(&mut self, node: StrongLinkNode<T>) {
         self.set_child(node, Binary::One)
-        //node.clone().set_parent(self.clone());
-        //self.0.as_ref().map(|this| this.borrow_mut().right = node);
     }
     fn set_parent(&mut self, node: StrongLinkNode<T>) {
         self.0
