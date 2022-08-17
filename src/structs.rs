@@ -13,6 +13,10 @@ pub mod tries {
         pub(super) mod weak_link;
     }
     pub mod x_fast_trie;
+    pub(super) mod x_fast_trie_parts {
+        pub(super) mod binary_label;
+        pub(super) mod hash_table;
+    }
 }
 
 pub mod tries_2 {

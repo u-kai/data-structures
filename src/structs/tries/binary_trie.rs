@@ -6,10 +6,10 @@ pub trait ToUsize {
     fn to_usize(&self) -> usize;
 }
 impl<T: ToUsize + Clone + PartialEq + Debug> StrongLinkNode<T> {
-    fn num(&self) -> Option<usize> {
+    pub fn num(&self) -> Option<usize> {
         self.value().map(|value| value.to_usize())
     }
-    fn update_jump(&mut self, binary: Binary) {
+    pub(super) fn update_jump(&mut self, binary: Binary) {
         match binary {
             Binary::Zero => {
                 let jump = self.left().get_max_child();
