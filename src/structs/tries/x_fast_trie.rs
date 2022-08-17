@@ -29,6 +29,49 @@ impl BinaryLabel {
         true
     }
 }
+#[derive(Debug, PartialEq, Clone)]
+struct XFastTrieHashTable<T: Clone + Debug + PartialEq> {
+    max_depth: usize,
+    table: Vec<HashMap<BinaryLabel, StrongLinkNode<T>>>,
+}
+
+impl<T: Clone + Debug + PartialEq + ToUsize> XFastTrieHashTable<T> {
+    fn new(max_depth: usize) -> Self {
+        let table = vec![HashMap::new(); max_depth - 1];
+        Self { max_depth, table }
+    }
+    fn register_binary_labels(
+        &mut self,
+        depth: usize,
+        usized_data: usize,
+        node: &StrongLinkNode<T>,
+    ) {
+        let key = self.gen_key(depth, usized_data);
+        self.table[Self::table_index(depth)].insert(key, node.clone());
+    }
+    fn remove(&mut self, depth: usize, usized_data: usize) {
+        let key = self.gen_key(depth, usized_data);
+        self.table[Self::table_index(depth)].remove(&key);
+    }
+    fn gen_key(&self, depth: usize, usized_data: usize) -> BinaryLabel {
+        BinaryLabel::new(self.max_depth, depth, usized_data)
+    }
+    fn leaf_parent_depth(&self) -> usize {
+        self.max_depth - 1
+    }
+    fn table_index(depth: usize) -> usize {
+        depth - 1
+    }
+    fn containes_all_label_at_data(&self, usized_leaf: usize) -> bool {
+        let leaf_parent_depth = self.leaf_parent_depth();
+        let leaf_parent_table_index = Self::table_index(leaf_parent_depth);
+        self.table[leaf_parent_table_index].contains_key(&BinaryLabel::new(
+            self.max_depth,
+            leaf_parent_depth,
+            usized_leaf,
+        ))
+    }
+}
 #[cfg(test)]
 mod x_fast_trie_parts_test {
     use super::*;
@@ -70,17 +113,71 @@ mod x_fast_trie_parts_test {
         assert_eq!(binary_label, tobe);
         assert!(binary_label.is_same(label_depth, usized_data));
     }
-    //fn test() {
-    //let mut hash_table = XFastTrieHashTable::new(4);
-    //hash_table.add_data(1);
-    //let leaf = StrongLinkNode::new_leaf(1);
-    //let mut depth_zero: HashMap<BinaryLabel, StrongLinkNode<i32>> = HashMap::new();
-    //depth_zero.insert(BinaryLabel { label: () }::Zero, leaf.clone());
-    //let mut depth_one: HashMap<Binary, StrongLinkNode<i32>> = HashMap::new();
-    //depth_one.insert(Binary::Zero, leaf.clone());
-    //let tobe = XFastTrieHashTable { table: vec![] };
-    //assert_eq!(hash_table, tobe);
-    //}
+    #[test]
+    fn x_fast_trie_hash_table_register_test() {
+        let mut hash_table = XFastTrieHashTable::new(4);
+        let mut root = StrongLinkNode::new_path_node();
+        let mut root_left = StrongLinkNode::new_path_node();
+        let mut root_left_left = StrongLinkNode::new_path_node();
+        let mut root_left_left_left = StrongLinkNode::new_path_node();
+        let leaf = StrongLinkNode::new_leaf(1);
+        root.set_jump(leaf.clone());
+        root.set_child(root_left.clone(), 0);
+
+        root_left.set_jump(leaf.clone());
+        root_left.set_child(root_left_left.clone(), 0);
+
+        root_left_left.set_jump(leaf.clone());
+        root_left_left.set_child(root_left_left_left.clone(), 0);
+
+        root_left_left_left.set_jump(leaf.clone());
+        root_left_left_left.set_child(leaf.clone(), 1);
+
+        hash_table.register_binary_labels(1, 1, &root_left);
+        hash_table.register_binary_labels(2, 1, &root_left_left);
+        hash_table.register_binary_labels(3, 1, &root_left_left_left);
+
+        let mut depth_one: HashMap<BinaryLabel, StrongLinkNode<i32>> = HashMap::new();
+        depth_one.insert(BinaryLabel::new(4, 1, 1), root_left.clone());
+        let mut depth_two: HashMap<BinaryLabel, StrongLinkNode<i32>> = HashMap::new();
+        depth_two.insert(BinaryLabel::new(4, 2, 1), root_left_left.clone());
+        let mut depth_three: HashMap<BinaryLabel, StrongLinkNode<i32>> = HashMap::new();
+        depth_three.insert(BinaryLabel::new(4, 3, 1), root_left_left_left.clone());
+        let tobe = XFastTrieHashTable {
+            table: vec![depth_one, depth_two, depth_three],
+            max_depth: 4,
+        };
+        assert_eq!(hash_table, tobe);
+    }
+    #[test]
+    fn x_fast_trie_hash_table_remove_test() {
+        let mut root = StrongLinkNode::new_path_node();
+        let mut root_left = StrongLinkNode::new_path_node();
+        let mut root_left_left = StrongLinkNode::new_path_node();
+        let mut root_left_left_left = StrongLinkNode::new_path_node();
+        let leaf = StrongLinkNode::new_leaf(1);
+        root.set_jump(leaf.clone());
+        root.set_child(root_left.clone(), 0);
+
+        root_left.set_jump(leaf.clone());
+        root_left.set_child(root_left_left.clone(), 0);
+
+        root_left_left.set_jump(leaf.clone());
+        root_left_left.set_child(root_left_left_left.clone(), 0);
+
+        root_left_left_left.set_jump(leaf.clone());
+        root_left_left_left.set_child(leaf.clone(), 1);
+
+        let mut hash_table = XFastTrieHashTable::<i32>::new(4);
+        hash_table.register_binary_labels(1, 1, &root_left);
+        hash_table.register_binary_labels(2, 1, &root_left_left);
+        hash_table.register_binary_labels(3, 1, &root_left_left_left);
+        hash_table.remove(1, 1);
+        hash_table.remove(2, 1);
+        hash_table.remove(3, 1);
+
+        assert_eq!(hash_table, XFastTrieHashTable::new(4));
+    }
 }
 
 #[derive(Debug, PartialEq)]

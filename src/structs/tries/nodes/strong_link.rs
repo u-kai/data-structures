@@ -4,7 +4,7 @@ use crate::structs::tries::binary_trie::PathNodeOrLeaf;
 
 use super::{node::Node, weak_link::WeakLinkNode};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StrongLinkNode<T: Clone + PartialEq + Debug>(Option<Rc<RefCell<Node<T>>>>);
 impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
     pub fn new_leaf(x: T) -> Self {
