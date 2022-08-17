@@ -35,7 +35,7 @@ impl<T: ToUsize + Clone + Debug + PartialEq> XFastTrie<T> {
         let num_x = x.to_usize();
         let leaf = StrongLinkNode::new_leaf(x.clone());
         let mut node = self.root.clone();
-        let mut prev = self.find_prev(num_x);
+        let mut prev = self.find_prev(&x);
         let usized_data = x;
 
         for digit in (1..=self.w).rev() {
@@ -90,54 +90,57 @@ impl<T: ToUsize + Clone + Debug + PartialEq> XFastTrie<T> {
         }
         true
     }
-    fn find_prev(&self, num: usize) -> StrongLinkNode<T> {
-        //let mut start = 0;
-        //let mut end = self.w + 1;
-        //let mut depth = (end+start)/2;
-        //while end - start > 1 {
-        //if self.table.find(depth, x) {
-        //start = depth;
-        //}else{
-        //end = depth;
-        //}
-        //}
-        //if depth == self.w {
+    fn find_prev(&self, x: &T) -> StrongLinkNode<T> {
+        let mut start = 0;
+        let mut end = self.w + 1;
+        let mut depth = (end + start) / 2;
 
-        //}
-        let mut node = self.root.clone();
-        for i in (1..=self.w).rev() {
-            let binary = Binary::calc_binary(num, i);
-            let child = node.child(binary.to_num());
-            if child.is_some() {
-                node = child
+        while (end - start) > 1 {
+            depth = (end + start) / 2;
+            if self.table.find(depth, x) {
+                start = depth;
             } else {
-                node = node.jump();
-                if node.is_none() {
-                    return self.min_prev.clone();
-                }
-                if node.num() >= Some(num) {
-                    node = node.prev()
-                }
-                return node;
+                end = depth;
             }
         }
-        if node.num() == Some(num) {
-            node.prev()
+        if depth == self.w {
+            return self.table.get(depth, x).unwrap().prev();
+        }
+        let parent_node = self.table.get(depth, x);
+        let jump_node = parent_node.map(|parent| parent.jump()).unwrap_or({
+            if self.root.jump().is_some() {
+                self.root.jump()
+            } else {
+                self.min_prev.clone()
+            }
+        });
+        if jump_node.num() >= Some(x.to_usize()) {
+            return jump_node.prev();
         } else {
-            self.min_prev.clone()
+            return jump_node;
+        };
+    }
+    fn find_leaf(&self, x: &T) -> StrongLinkNode<T> {
+        let prev = self.find_prev(x);
+        if prev.next().num() == Some(x.to_usize()) {
+            prev.next()
+        } else {
+            StrongLinkNode::new_none()
         }
     }
     fn in_range(&self, x: &T) -> bool {
         let num_x = x.to_usize();
         num_x < 2_i128.pow(self.w as u32) as usize
     }
-    pub fn find(&self, x: T) -> bool {
-        true
+    pub fn find(&self, x: &T) -> bool {
+        self.find_leaf(x).is_some()
     }
 }
 
 #[cfg(test)]
 mod x_fast_trie_test {
+    use crate::structs::tries::helper::rec_assert;
+
     use super::*;
 
     #[test]
@@ -177,12 +180,73 @@ mod x_fast_trie_test {
             root: root.clone(),
             min_prev,
             max_next,
-            table,
+            table: table.clone(),
             w: max_depth,
         };
 
         let mut tree = XFastTrie::new(max_depth);
         tree.add(3);
+        assert_eq!(tree, tobe);
+        let mut root_right = StrongLinkNode::new_path_node();
+        let mut root_right_left = StrongLinkNode::new_path_node();
+        let mut root_right_left_left = StrongLinkNode::new_path_node();
+        let leaf_9 = StrongLinkNode::new_leaf(9);
+        root.set_jump(StrongLinkNode::new_path_node());
+        root_right.set_jump(leaf_9.clone());
+        root_right_left.set_jump(leaf_9.clone());
+        root_right_left_left.set_jump(leaf_9.clone());
+        root_right_left_left.set_right(leaf_9.clone());
+        root_right_left.set_left(root_right_left_left.clone());
+        root_right.set_left(root_right_left.clone());
+        root.set_right(root_right.clone());
+        leaf_3.set_next(leaf_9.clone());
+        let mut min_prev = StrongLinkNode::new_path_node();
+        let mut max_next = StrongLinkNode::new_path_node();
+        min_prev.set_next(leaf_3.clone());
+        max_next.set_prev(leaf_9.clone());
+        table.register_binary_labels(1, &leaf_9.value().clone().unwrap(), root_right.clone());
+        table.register_binary_labels(2, &leaf_9.value().clone().unwrap(), root_right_left.clone());
+        table.register_binary_labels(
+            3,
+            &leaf_9.value().clone().unwrap(),
+            root_right_left_left.clone(),
+        );
+        table.register_binary_labels(4, &leaf_9.value().clone().unwrap(), leaf_9.clone());
+        let tobe = XFastTrie {
+            root: root.clone(),
+            w: 4,
+            min_prev: min_prev.clone(),
+            max_next: max_next.clone(),
+            table: table.clone(),
+        };
+        tree.add(9);
+        rec_assert("root".to_string(), tree.root.clone(), tobe.root.clone());
+        assert_eq!(tree, tobe);
+        let mut leaf_1 = StrongLinkNode::new_leaf(1);
+        let mut root_left_left_left = StrongLinkNode::new_path_node();
+        root_left_left_left.set_right(leaf_1.clone());
+        root_left_left_left.set_jump(leaf_1.clone());
+        min_prev.set_next(leaf_1.clone());
+        leaf_1.set_next(leaf_3.clone());
+        root_left_left.set_jump(StrongLinkNode::new_none());
+        root_left_left.set_left(root_left_left_left.clone());
+        table.register_binary_labels(1, &leaf_1.value().clone().unwrap(), root_left.clone());
+        table.register_binary_labels(2, &leaf_1.value().clone().unwrap(), root_left_left.clone());
+        table.register_binary_labels(
+            3,
+            &leaf_1.value().clone().unwrap(),
+            root_left_left_left.clone(),
+        );
+        table.register_binary_labels(4, &leaf_1.value().clone().unwrap(), leaf_1.clone());
+        let tobe = XFastTrie {
+            root: root.clone(),
+            w: 4,
+            min_prev: min_prev.clone(),
+            max_next: max_next.clone(),
+            table: table.clone(),
+        };
+        tree.add(1);
+        rec_assert("root".to_string(), tree.root.clone(), tobe.root.clone());
         assert_eq!(tree, tobe);
     }
     //#[test]

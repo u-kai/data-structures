@@ -47,6 +47,6 @@ impl<T: Clone + PartialEq + Debug> Deref for WeakLinkNode<T> {
 }
 impl<T: Clone + PartialEq + Debug> Drop for WeakLinkNode<T> {
     fn drop(&mut self) {
-        println!("drop node = {:?}", self.value());
+        //println!("drop node = {:?}", self.value());
     }
 }

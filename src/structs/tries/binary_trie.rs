@@ -70,10 +70,10 @@ impl Binary {
 }
 #[derive(Debug, PartialEq)]
 pub struct BinaryTrie<T: ToUsize + Clone + PartialEq + Debug> {
-    root: StrongLinkNode<T>,
-    min_prev: StrongLinkNode<T>,
-    max_next: StrongLinkNode<T>,
-    w: usize,
+    pub(super) root: StrongLinkNode<T>,
+    pub(super) min_prev: StrongLinkNode<T>,
+    pub(super) max_next: StrongLinkNode<T>,
+    pub(super) w: usize,
 }
 impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     pub fn new(w: usize) -> Self {
@@ -211,6 +211,8 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
 #[cfg(test)]
 
 mod binary_trie_test {
+    use crate::structs::tries::helper::rec_assert;
+
     use super::*;
     #[test]
     fn remove_test() {
@@ -413,85 +415,5 @@ mod binary_trie_test {
         assert_eq!(Binary::calc_binary(255, 9), Binary::Zero);
         assert_eq!(Binary::calc_binary(0, 1), Binary::Zero);
         assert_eq!(Binary::calc_binary(8, 5), Binary::Zero);
-    }
-}
-
-#[allow(unused)]
-fn check_prev_next<T: ToUsize + Clone + PartialEq + Debug>(tree: BinaryTrie<T>) {
-    let mut next = tree.min_prev.clone();
-    println!("from prev");
-    println!();
-    while next.is_some() {
-        println!("next = {:?}", next.value());
-        next = next.next();
-    }
-    let mut prev = tree.max_next.clone();
-    println!("from next");
-    println!();
-    while prev.is_some() {
-        println!("prev = {:?}", prev.value());
-        prev = prev.prev();
-    }
-}
-#[allow(unused)]
-fn rec_assert<T: ToUsize + Clone + PartialEq + Debug>(
-    name: String,
-    node: StrongLinkNode<T>,
-    other: StrongLinkNode<T>,
-) {
-    println!();
-    let s = name;
-    println!("{}", s);
-    println!(
-        "value : self = {:?}, other = {:?}",
-        node.value(),
-        other.value()
-    );
-    println!(
-        "parent : self = {:?}, other = {:?}",
-        node.parent().is_some(),
-        other.parent().is_some()
-    );
-    assert_eq!(node.parent().is_some(), other.parent().is_some());
-
-    println!(
-        "left : self = {:?}  other = {:?}",
-        node.left().is_some(),
-        other.left().is_some()
-    );
-    println!(
-        "right : self = {:?}  other = {:?}",
-        node.right().is_some(),
-        other.right().is_some()
-    );
-    assert_eq!(node.left().is_some(), other.left().is_some());
-    assert_eq!(node.right().is_some(), other.right().is_some());
-
-    println!(
-        "prev : self = {:?} other = {:?}",
-        node.prev().value(),
-        other.prev().value()
-    );
-    assert_eq!(node.prev().value(), other.prev().value());
-
-    println!(
-        "next : self = {:?} other = {:?} ",
-        node.next().value(),
-        other.next().value()
-    );
-    assert_eq!(node.next().value(), other.next().value());
-
-    println!(
-        "jump self = {:?} other = {:?}",
-        node.jump().value(),
-        other.jump().value()
-    );
-    assert_eq!(node.jump().value(), other.jump().value());
-
-    if node.left().is_some() {
-        rec_assert(format!("{}-left", s), node.left(), other.left());
-    }
-    if node.right().is_some() {
-        rec_assert(format!("{}-right", s), node.right(), other.right());
     }
 }

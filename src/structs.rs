@@ -7,6 +7,7 @@ pub mod linked_lists;
 pub mod skip_lists;
 pub mod tries {
     pub mod binary_trie;
+    pub(self) mod helper;
     pub(super) mod nodes {
         pub(super) mod node;
         pub(super) mod strong_link;
