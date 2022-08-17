@@ -5,4 +5,12 @@ pub mod hash_tables;
 pub mod heap;
 pub mod linked_lists;
 pub mod skip_lists;
-pub mod tries;
+pub mod tries {
+    pub mod binary_trie;
+    pub(super) mod nodes {
+        pub(super) mod node;
+        pub(super) mod strong_link;
+        pub(super) mod weak_link;
+    }
+    pub mod x_fast_trie;
+}
