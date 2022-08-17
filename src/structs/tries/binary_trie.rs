@@ -48,20 +48,20 @@ pub(super) enum Binary {
     One,
 }
 impl Binary {
-    fn calc_binary(number: usize, digit: usize) -> Self {
+    pub fn calc_binary(number: usize, digit: usize) -> Self {
         if (number >> (digit - 1) & 1) == 1 {
             Self::One
         } else {
             Self::Zero
         }
     }
-    fn other(&self) -> Self {
+    pub fn other(&self) -> Self {
         match self {
             Self::Zero => Self::One,
             Self::One => Self::Zero,
         }
     }
-    fn to_num(&self) -> usize {
+    pub fn to_num(&self) -> usize {
         match self {
             Self::Zero => 0,
             Self::One => 1,
