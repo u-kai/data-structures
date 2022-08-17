@@ -79,9 +79,6 @@ impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
     pub fn has_child(&self) -> bool {
         self.right().is_some() || self.left().is_some()
     }
-    pub fn has_right_and_left_child(&self) -> bool {
-        self.right().is_some() && self.left().is_some()
-    }
     pub fn left(&self) -> Self {
         self.child(0)
     }
@@ -108,6 +105,11 @@ impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
     }
     pub fn set_jump(&mut self, leaf: Self) {
         self.0.as_ref().map(|node| node.borrow_mut().jump = leaf);
+    }
+    pub fn remove_jump(&mut self) {
+        self.0
+            .as_ref()
+            .map(|node| node.borrow_mut().jump = StrongLinkNode::new_none());
     }
     pub fn set_next(&mut self, leaf: Self) {
         leaf.0

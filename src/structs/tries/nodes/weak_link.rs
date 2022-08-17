@@ -11,11 +11,6 @@ impl<T: Clone + PartialEq + Debug> WeakLinkNode<T> {
     pub fn new(weak_link: Option<Weak<RefCell<Node<T>>>>) -> Self {
         Self(weak_link)
     }
-    fn parent(&self) -> Option<Option<StrongLinkNode<T>>> {
-        self.0
-            .as_ref()
-            .map(|node| node.upgrade().map(|up| up.borrow().jump.clone()))
-    }
     pub fn value(&self) -> Option<T> {
         if let Some(node) = self.0.as_ref() {
             if let Some(node) = node.upgrade() {
@@ -52,7 +47,6 @@ impl<T: Clone + PartialEq + Debug> Deref for WeakLinkNode<T> {
 }
 impl<T: Clone + PartialEq + Debug> Drop for WeakLinkNode<T> {
     fn drop(&mut self) {
-        //println!("drop node = {:?}", self.value());
-        //println!("{:?}", self.parent());
+        println!("drop node = {:?}", self.value());
     }
 }
