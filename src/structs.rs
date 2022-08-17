@@ -14,3 +14,9 @@ pub mod tries {
     }
     pub mod x_fast_trie;
 }
+
+pub mod tries_2 {
+    pub(super) mod leaf;
+    pub(super) mod node;
+    pub mod x_fast_trie;
+}

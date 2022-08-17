@@ -42,12 +42,19 @@ impl<T: Clone + PartialEq> PathNodeOrLeaf<T> {
         }
     }
 }
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 pub(super) enum Binary {
     Zero,
     One,
 }
 impl Binary {
+    fn calc_binary(number: usize, digit: usize) -> Self {
+        if (number >> (digit - 1) & 1) == 1 {
+            Self::One
+        } else {
+            Self::Zero
+        }
+    }
     fn other(&self) -> Self {
         match self {
             Self::Zero => Self::One,
@@ -92,7 +99,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         let mut prev = self.find_prev(num_x);
 
         for digit in (1..=self.w).rev() {
-            let binary = Self::calc_binary(num_x, digit);
+            let binary = Binary::calc_binary(num_x, digit);
             let child = node.child(binary.to_num());
             if child.is_some() {
                 if digit == 1 {
@@ -145,7 +152,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         next.set_prev(prev.clone());
         let mut parent = remove_leaf.parent();
         for i in 1..=self.w {
-            let binary = Self::calc_binary(num_x, i);
+            let binary = Binary::calc_binary(num_x, i);
             let child = parent.child(binary.to_num());
             if !child.has_child() {
                 parent.set_child(StrongLinkNode::new_none(), binary.to_num());
@@ -163,13 +170,6 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     pub fn find(&self, x: T) -> bool {
         self.find_leaf(x.to_usize()).is_some()
     }
-    fn calc_binary(num: usize, digit_num: usize) -> Binary {
-        if (num >> (digit_num - 1) & 1) == 1 {
-            Binary::One
-        } else {
-            Binary::Zero
-        }
-    }
     fn find_leaf(&self, num: usize) -> StrongLinkNode<T> {
         let prev = self.find_prev(num);
         if prev.next().num() == Some(num) {
@@ -181,7 +181,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     fn find_prev(&self, num: usize) -> StrongLinkNode<T> {
         let mut node = self.root.clone();
         for i in (1..=self.w).rev() {
-            let binary = Self::calc_binary(num, i);
+            let binary = Binary::calc_binary(num, i);
             let child = node.child(binary.to_num());
             if child.is_some() {
                 node = child
@@ -402,17 +402,17 @@ mod binary_trie_test {
 
     #[test]
     fn calc_binary_test() {
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 1), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 2), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 3), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 4), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 5), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 6), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 7), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 8), Binary::One);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(255, 9), Binary::Zero);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(0, 1), Binary::Zero);
-        assert_eq!(BinaryTrie::<i32>::calc_binary(8, 5), Binary::Zero);
+        assert_eq!(Binary::calc_binary(255, 1), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 2), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 3), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 4), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 5), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 6), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 7), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 8), Binary::One);
+        assert_eq!(Binary::calc_binary(255, 9), Binary::Zero);
+        assert_eq!(Binary::calc_binary(0, 1), Binary::Zero);
+        assert_eq!(Binary::calc_binary(8, 5), Binary::Zero);
     }
 }
 
