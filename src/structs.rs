@@ -19,9 +19,3 @@ pub mod tries {
         pub(super) mod hash_table;
     }
 }
-
-pub mod tries_2 {
-    pub(super) mod leaf;
-    pub(super) mod node;
-    pub mod x_fast_trie;
-}

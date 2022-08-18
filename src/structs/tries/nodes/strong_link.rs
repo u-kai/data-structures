@@ -133,6 +133,16 @@ impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
             .as_ref()
             .map(|node| node.borrow_mut().prev = leaf.to_weak());
     }
+    pub fn remove_child(&mut self, index: usize) {
+        if index == 0 {
+            self.set_left(Self::new_none());
+            return;
+        }
+        if index == 1 {
+            self.set_right(Self::new_none());
+            return;
+        }
+    }
     pub fn set_child(&mut self, child: Self, index: usize) {
         if index == 0 {
             self.set_left(child);

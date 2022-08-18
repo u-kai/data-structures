@@ -1,4 +1,7 @@
-use std::io::{stdin, BufRead};
+use std::{
+    fs::File,
+    io::{stdin, BufRead, BufReader, Read},
+};
 
 use structs::tries::{
     binary_trie::{BinaryTrie, ToUsize},
@@ -18,20 +21,20 @@ impl ToUsize for i32 {
     }
 }
 fn main() {
-    let mut t = BinaryTrie::new(32);
-    let mut x = XFastTrie::new(32);
-    let mut a = move || {
-        for i in 0..1000000 {
-            t.add(i);
-        }
-        t.find(999999);
-    };
-    let mut b = move || {
-        for i in 0..1000000 {
-            x.add(i);
-        }
-        x.find(&999999);
-    };
-    calc_time!(a);
-    calc_time!(b);
+    //let mut t = BinaryTrie::new(32);
+    //let mut x = XFastTrie::new(32);
+    //let mut a = move || {
+    //for i in 0..1000000 {
+    //t.add(i);
+    //}
+    //t.find(999999);
+    //};
+    //let mut b = move || {
+    //for i in 0..1000000 {
+    //x.add(i);
+    //}
+    //x.find(&999999);
+    //};
+    //calc_time!(a);
+    //calc_time!(b);
 }

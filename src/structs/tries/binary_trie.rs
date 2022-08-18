@@ -151,7 +151,7 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
             let binary = Binary::calc_binary(num_x, i);
             let child = parent.child(binary.to_num());
             if !child.has_one_child() {
-                parent.set_child(StrongLinkNode::new_none(), binary.to_num());
+                parent.remove_child(binary.to_num());
             }
             if parent.jump() == remove_leaf {
                 parent.update_jump(binary);
@@ -179,17 +179,17 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
             let binary = Binary::calc_binary(num, i);
             let child = node.child(binary.to_num());
             if child.is_some() {
-                node = child
-            } else {
-                node = node.jump();
-                if node.is_none() {
-                    return self.min_prev.clone();
-                }
-                if node.num() >= Some(num) {
-                    node = node.prev()
-                }
-                return node;
+                node = child;
+                continue;
             }
+            node = node.jump();
+            if node.is_none() {
+                return self.min_prev.clone();
+            }
+            if node.num() >= Some(num) {
+                node = node.prev()
+            }
+            return node;
         }
         if node.num() == Some(num) {
             return node.prev();
