@@ -1,4 +1,9 @@
-use structs::tries::binary_trie::{BinaryTrie, ToUsize};
+use std::io::{stdin, BufRead};
+
+use structs::tries::{
+    binary_trie::{BinaryTrie, ToUsize},
+    x_fast_trie::XFastTrie,
+};
 
 mod interfaces;
 
@@ -13,8 +18,20 @@ impl ToUsize for i32 {
     }
 }
 fn main() {
-    let mut tree = BinaryTrie::new(4);
-    tree.add(1);
-    tree.find(1);
-    tree.remove(1);
+    let mut t = BinaryTrie::new(32);
+    let mut x = XFastTrie::new(32);
+    let mut a = move || {
+        for i in 0..1000000 {
+            t.add(i);
+        }
+        t.find(999999);
+    };
+    let mut b = move || {
+        for i in 0..1000000 {
+            x.add(i);
+        }
+        x.find(&999999);
+    };
+    calc_time!(a);
+    calc_time!(b);
 }

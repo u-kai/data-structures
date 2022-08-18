@@ -1,7 +1,7 @@
-use std::time::Instant;
+#[macro_export]
 macro_rules! calc_time {
     ($fn:ident) => {
-        let timer = Instant::now();
+        let timer = std::time::Instant::now();
         $fn();
         println!("time = {:?}", timer.elapsed());
     };

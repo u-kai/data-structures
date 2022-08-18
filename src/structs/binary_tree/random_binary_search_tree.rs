@@ -76,39 +76,40 @@ impl<T: Clone + Default + Debug + Eq + PartialEq + PartialOrd + Ord> WrapNode<T>
         self.borrow().p
     }
     fn add_use_binary_search_algo(&mut self, child: WrapNode<T>) -> bool {
+        if &self.borrow().value == &child.borrow().value {
+            return false;
+        }
         if &self.borrow().value > &child.borrow().value {
             self.borrow_mut().left = Some(child.clone());
-        } else if &self.borrow().value < &child.borrow().value {
+        }
+        if &self.borrow().value < &child.borrow().value {
             self.borrow_mut().right = Some(child.clone())
-        } else {
-            return false;
         }
         child.borrow_mut().parent = Some(Rc::downgrade(&self));
         true
     }
     fn parent(&self) -> Option<Self> {
-        if let Some(parent) = &self.borrow().parent {
-            let parent = parent.upgrade().as_ref().unwrap().clone();
-            Some(WrapNode(parent))
-        } else {
-            None
+        match &self.borrow().parent {
+            Some(parent) => {
+                let parent = parent.upgrade().as_ref().unwrap().clone();
+                return Some(WrapNode(parent));
+            }
+            None => None,
         }
     }
     fn left(&self) -> Option<Self> {
         if let Some(left) = self.borrow().left.as_ref() {
             let left = left.to_node().clone();
-            Some(WrapNode(left))
-        } else {
-            None
+            return Some(WrapNode(left));
         }
+        None
     }
     fn right(&self) -> Option<Self> {
         if let Some(right) = self.borrow().right.as_ref() {
             let right = right.to_node().clone();
-            Some(WrapNode(right))
-        } else {
-            None
+            return Some(WrapNode(right));
         }
+        None
     }
     fn set_parent(&mut self, parent: Option<WrapNode<T>>) {
         self.0.borrow_mut().parent = parent.map(|parent| Rc::downgrade(&parent));
@@ -157,15 +158,17 @@ impl<
     fn find_node(&self, value: T) -> Option<WrapNode<T>> {
         let mut node = Some(self.root.clone());
         while node.is_some() {
+            if node.as_ref().unwrap().borrow().value == value {
+                return Some(node.unwrap());
+            }
             if node.as_ref().unwrap().borrow().value > value {
                 let new_node = node.as_ref().unwrap().left();
                 node = new_node;
-            } else if node.as_ref().unwrap().borrow().value < value {
+                continue;
+            }
+            if node.as_ref().unwrap().borrow().value < value {
                 let new_node = node.as_ref().unwrap().right();
                 node = new_node;
-            } else if node.as_ref().unwrap().borrow().value == value {
-                let node = node.as_ref().unwrap();
-                return Some(node.clone());
             }
         }
         None
@@ -174,16 +177,19 @@ impl<
         let mut node = Some(self.root.clone());
         let mut prev = None;
         while node.is_some() {
+            if node.as_ref().unwrap().borrow().value == value {
+                return node;
+            }
             if node.as_ref().unwrap().borrow().value > value {
                 let new_node = node.as_ref().unwrap().borrow().left.clone();
-                prev = Some(node.as_ref().unwrap().clone());
+                prev = Some(node.unwrap());
                 node = new_node;
-            } else if node.as_ref().unwrap().borrow().value < value {
+                continue;
+            }
+            if node.as_ref().unwrap().borrow().value < value {
                 let new_node = node.as_ref().unwrap().borrow().right.clone();
-                prev = Some(node.as_ref().unwrap().clone());
+                prev = Some(node.unwrap());
                 node = new_node
-            } else {
-                return node;
             }
         }
         prev

@@ -39,10 +39,9 @@ impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
             node = node.right();
         }
         if node.value().is_some() {
-            node
-        } else {
-            node.jump()
+            return node;
         }
+        node.jump()
     }
     pub fn next(&self) -> Self {
         if let Some(next) = self.0.as_ref().map(|node| node.borrow().next.clone()) {
@@ -76,8 +75,17 @@ impl<T: Clone + PartialEq + Debug> StrongLinkNode<T> {
             None
         }
     }
-    pub fn has_child(&self) -> bool {
+    pub fn has_child(&self, index: usize) -> bool {
+        self.child(index).is_some()
+    }
+    pub fn has_one_child(&self) -> bool {
         self.right().is_some() || self.left().is_some()
+    }
+    pub fn has_two_child(&self) -> bool {
+        self.right().is_some() && self.left().is_some()
+    }
+    pub fn has_jump(&self) -> bool {
+        self.jump().is_some()
     }
     pub fn left(&self) -> Self {
         self.child(0)
