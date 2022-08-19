@@ -21,20 +21,19 @@ impl ToUsize for i32 {
     }
 }
 fn main() {
-    //let mut t = BinaryTrie::new(32);
-    //let mut x = XFastTrie::new(32);
-    //let mut a = move || {
-    //for i in 0..1000000 {
-    //t.add(i);
-    //}
-    //t.find(999999);
-    //};
+    let mut t = BinaryTrie::new(32);
+    let mut a = move || {
+        for i in 0..1 {
+            t.add(i);
+        }
+        t.find(9999);
+    };
     //let mut b = move || {
-    //for i in 0..1000000 {
+    //for i in 0..10000 {
     //x.add(i);
     //}
     //x.find(&999999);
     //};
-    //calc_time!(a);
+    calc_time!(a);
     //calc_time!(b);
 }

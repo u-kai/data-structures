@@ -74,6 +74,16 @@ pub struct BinaryTrie<T: ToUsize + Clone + PartialEq + Debug> {
     pub(super) max_next: StrongLinkNode<T>,
     pub(super) w: usize,
 }
+impl<T: ToUsize + Clone + PartialEq + Debug> Drop for BinaryTrie<T> {
+    fn drop(&mut self) {
+        while self.min_prev.next().value().is_some() {
+            let next_value = self.min_prev.next().value();
+            let remove_x = next_value.as_ref().unwrap();
+            self.remove(remove_x);
+        }
+        println!("{:#?}", self);
+    }
+}
 impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
     pub fn new(w: usize) -> Self {
         let root = StrongLinkNode::new_path_node();
@@ -136,16 +146,15 @@ impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {
         next.set_prev(leaf.clone());
         true
     }
-    pub fn remove(&mut self, x: T) -> Option<T> {
+    pub fn remove(&mut self, x: &T) -> Option<T> {
         let num_x = x.to_usize();
         let remove_leaf = self.find_leaf(num_x);
         if remove_leaf.is_none() {
             return None;
         }
         let mut prev = remove_leaf.prev();
-        let mut next = remove_leaf.next();
+        let next = remove_leaf.next();
         prev.set_next(next.clone());
-        next.set_prev(prev.clone());
         let mut parent = remove_leaf.parent();
         for i in 1..=self.w {
             let binary = Binary::calc_binary(num_x, i);
@@ -221,22 +230,22 @@ mod binary_trie_test {
         tobe.add(1);
         tobe.add(0);
         tobe.add(15);
-        assert_eq!(tree.remove(3), Some(3));
+        assert_eq!(tree.remove(&3), Some(3));
         assert_eq!(tree, tobe);
         let mut tobe = BinaryTrie::new(4);
         tobe.add(1);
         tobe.add(0);
         tobe.add(15);
-        assert_eq!(tree.remove(9), Some(9));
+        assert_eq!(tree.remove(&9), Some(9));
         assert_eq!(tree, tobe);
-        assert_eq!(tree.remove(1), Some(1));
-        assert_eq!(tree.remove(0), Some(0));
-        assert_eq!(tree.remove(15), Some(15));
-        assert_eq!(tree.remove(3), None);
-        assert_eq!(tree.remove(9), None);
-        assert_eq!(tree.remove(1), None);
-        assert_eq!(tree.remove(0), None);
-        assert_eq!(tree.remove(15), None);
+        assert_eq!(tree.remove(&1), Some(1));
+        assert_eq!(tree.remove(&0), Some(0));
+        assert_eq!(tree.remove(&15), Some(15));
+        assert_eq!(tree.remove(&3), None);
+        assert_eq!(tree.remove(&9), None);
+        assert_eq!(tree.remove(&1), None);
+        assert_eq!(tree.remove(&0), None);
+        assert_eq!(tree.remove(&15), None);
     }
     #[test]
     fn find_prev_test() {
@@ -301,14 +310,13 @@ mod binary_trie_test {
 
         let tobe: BinaryTrie<i32> = BinaryTrie {
             root: root.clone(),
-            min_prev,
-            max_next,
+            min_prev: min_prev.clone(),
+            max_next: max_next.clone(),
             w: 4,
         };
 
         let mut tree = BinaryTrie::new(4);
         tree.add(3);
-
         assert_eq!(tree, tobe);
 
         let mut root_right_child = StrongLinkNode::new_path_node();
@@ -324,8 +332,6 @@ mod binary_trie_test {
         root_right_child.set_left(root_right_child_left_child.clone());
         root.set_right(root_right_child.clone());
         leaf_3.set_next(leaf_9.clone());
-        let mut min_prev = StrongLinkNode::new_path_node();
-        let mut max_next = StrongLinkNode::new_path_node();
         min_prev.set_next(leaf_3.clone());
         max_next.set_prev(leaf_9.clone());
         tree.add(9);
@@ -391,7 +397,6 @@ mod binary_trie_test {
         tree_2.add(3);
         tree_2.add(9);
         tree_2.add(15);
-
         assert_eq!(tree, tree_2);
         rec_assert("root".to_string(), tree.root.clone(), tobe.root.clone());
     }
