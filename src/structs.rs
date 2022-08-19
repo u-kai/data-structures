@@ -1,7 +1,8 @@
 pub mod arrays;
 pub mod binary_tree;
 pub mod external_memory {
-    pub mod block_store;
+    pub(super) mod block_store;
+    pub mod btree;
     pub(super) mod helper;
 }
 pub mod graphs;

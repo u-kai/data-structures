@@ -1,56 +1,35 @@
 use std::fmt::Debug;
 
-use super::helper::{build_B2_none, B};
-
-pub trait BlockStore<T> {
-    fn read_block(&self, i: usize) -> &T;
-    fn write_block(&mut self, i: usize, b: T) -> ();
-    fn place_block(&mut self, b: T) -> usize;
-    fn free_block(&mut self, i: usize) -> ();
+use super::btree::BIndex;
+#[derive(Debug, PartialEq, Eq)]
+pub(super) struct BlockStore<T> {
+    pub block_list: Vec<T>,
+    pub free_list: Vec<BIndex>,
 }
-
-type BIndex = usize;
-pub struct BTree {
-    root_index: BIndex,
-}
-
-struct NodeList<T> {
-    block_list: Vec<Node<T>>,
-    free_list: Vec<BIndex>,
-}
-
-struct Node<T> {
-    keys: [Option<T>; 2 * B],
-    children: [Option<BIndex>; 2 * B],
-}
-impl<T> Node<T>
-where
-    T: Clone + Debug + PartialEq + PartialOrd + Ord + Default,
-{
-    fn new() -> Self {
+impl<T> BlockStore<T> {
+    pub fn new() -> Self {
         Self {
-            keys: build_B2_none::<T>(),
-            children: build_B2_none::<BIndex>(),
+            block_list: Vec::new(),
+            free_list: Vec::new(),
         }
     }
-}
-
-//macro_rules! allocate_array {
-//($elem:ident,$num:literal) => {
-//let mut v = vec![$elem; $num];
-//v.into_boxed_slice()
-//};
-//}
-
-#[cfg(test)]
-mod block_store_test {
-    #[test]
-    fn allocate_array_test() {
-        //#[derive(Default, PartialEq, Eq, Debug)]
-        //struct Wrap(String);
-        //let array: [Option<Wrap>; 8] = [None; 8];
-        ////let array: [Option<String>; 8] = vec![None; 8].;
-        //let tobe: [Option<Wrap>; 8] = [None, None, None, None, None, None, None, None];
-        //assert_eq!(array, tobe);
+    pub fn read_block(&mut self, i: usize) -> Option<&T> {
+        self.block_list.get(i)
+    }
+    //pub fn update_block(&mut self, i: usize, b: &T) {
+    //*self.block_list.get_mut(i).unwrap() = b;
+    //}
+    pub fn write_block(&mut self, i: usize, b: T) {
+        match self.block_list.get_mut(i) {
+            Some(block) => *block = b,
+            None => self.block_list.push(b),
+        };
+    }
+    pub fn place_block(&mut self, b: T) -> Option<usize> {
+        None
+    }
+    pub fn free_block(&mut self, i: usize) {}
+    pub fn block_list_len(&self) -> usize {
+        self.block_list.len()
     }
 }
