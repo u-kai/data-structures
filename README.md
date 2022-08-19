@@ -1,1 +1,1 @@
-# みんなのデータ構造をRustで
+# data-structures

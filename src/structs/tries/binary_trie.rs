@@ -81,7 +81,6 @@ impl<T: ToUsize + Clone + PartialEq + Debug> Drop for BinaryTrie<T> {
             let remove_x = next_value.as_ref().unwrap();
             self.remove(remove_x);
         }
-        println!("{:#?}", self);
     }
 }
 impl<T: ToUsize + Clone + PartialEq + Debug> BinaryTrie<T> {

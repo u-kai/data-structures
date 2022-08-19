@@ -2,6 +2,7 @@ pub mod arrays;
 pub mod binary_tree;
 pub mod external_memory {
     pub mod block_store;
+    pub(super) mod helper;
 }
 pub mod graphs;
 pub mod hash_tables;

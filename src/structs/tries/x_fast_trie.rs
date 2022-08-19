@@ -6,6 +6,15 @@ use super::{
     x_fast_trie_parts::hash_table::XFastTrieHashTable,
 };
 
+//impl<T: ToUsize + Clone + PartialEq + Debug> Drop for XFastTrie<T> {
+//fn drop(&mut self) {
+//while self.min_prev.next().value().is_some() {
+//let next_value = self.min_prev.next().value();
+//let remove_x = next_value.as_ref().unwrap();
+//self.remove(remove_x);
+//}
+//}
+//}
 #[derive(Debug, PartialEq)]
 pub struct XFastTrie<T: ToUsize + Clone + Debug + PartialEq> {
     root: StrongLinkNode<T>,
@@ -181,8 +190,8 @@ mod x_fast_trie_test {
 
         let tobe = XFastTrie {
             root: root.clone(),
-            min_prev,
-            max_next,
+            min_prev: min_prev.clone(),
+            max_next: max_next.clone(),
             table: table.clone(),
             w: max_depth,
         };
@@ -203,8 +212,6 @@ mod x_fast_trie_test {
         root_right.set_left(root_right_left.clone());
         root.set_right(root_right.clone());
         leaf_3.set_next(leaf_9.clone());
-        let mut min_prev = StrongLinkNode::new_path_node();
-        let mut max_next = StrongLinkNode::new_path_node();
         min_prev.set_next(leaf_3.clone());
         max_next.set_prev(leaf_9.clone());
         table.register_binary_labels(1, &leaf_9.value().clone().unwrap(), root_right.clone());
