@@ -38,7 +38,7 @@ where
         new_node
     }
     pub fn is_full(&self) -> bool {
-        self.keys.len() == 2 * B
+        self.keys.iter().filter(|node| node.is_some()).count() == 2 * B
     }
     pub fn is_leaf(&self, key_index: KeyIndex) -> bool {
         self.children[*key_index].is_none()
@@ -89,11 +89,6 @@ where
         }
         IndexUsedByFindIt::NotFindResult(start.into())
     }
-    //pub fn add_key(&mut self, x: T) {
-    //for key in &self.keys {
-    //if key > x {}
-    //}
-    //}
     pub fn remove(&mut self, key_index: KeyIndex) -> Option<T> {
         let removed = self.keys[*key_index].take();
         self.keys.rotate_left(1);
@@ -120,13 +115,19 @@ where
     }
     pub fn add(&mut self, x: T) -> bool {
         let add_rec_result = self.add_rec(x, self.root_index);
+        println!("add_rec_result {:#?}", add_rec_result);
         match add_rec_result {
             AddRecResult::AlreadyExist => false,
             AddRecResult::NotSplite => true,
-            AddRecResult::Splited(_, _) => {
-                //let mut new_root = Node::new_empty();
-                //let x = node.remove(0).unwrap();
-                //self.block_store.write_block(, b)
+            AddRecResult::Splited(index, mut node) => {
+                let mut new_root = Node::new_empty();
+                let x = node.remove(0.into());
+                self.block_store.update_block(index, node);
+                new_root.children[0] = self.root_index.into();
+                new_root.keys[0] = x;
+                new_root.children[1] = index.into();
+                let root_index = self.block_store.place_block(new_root);
+                self.root_index = root_index;
                 true
             }
         }
@@ -168,10 +169,12 @@ where
     }
 }
 
+#[derive(Debug)]
 enum IndexUsedByFindIt {
     FindJust(KeyIndex),
     NotFindResult(KeyIndex),
 }
+#[derive(Debug)]
 enum AddRecResult<T> {
     AlreadyExist,
     NotSplite,
@@ -232,14 +235,19 @@ mod btree_test {
             children: [None; 5],
         };
         tree.add(10);
+        println!("add 10 {:#?}", tree);
         tree.add(11);
+        println!("add 11 {:#?}", tree);
         tree.add(12);
+        println!("add 12 {:#?}", tree);
         tree.add(13);
+        println!("add 13 {:#?}", tree);
         tree.add(14);
+        println!("add 14 {:#?}", tree);
         assert_eq!(
             tree,
             BTree {
-                root_index: 0.into(),
+                root_index: 5.into(),
                 block_store: BlockStore {
                     block_list: vec![
                         Block::new(0.into(), left),
