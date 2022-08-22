@@ -26,6 +26,7 @@ where
         if !self.is_full() {
             panic!("can not split! because node = {:#?} is not full", self)
         };
+        println!("before split {:#?}", self);
         let mut new_node = Node::new_empty();
         for (new_node_index, move_index) in (B..=(2 * B)).enumerate() {
             let move_child_index = self.children[move_index].take();
@@ -35,6 +36,8 @@ where
             let move_key = self.keys[key_index].take();
             new_node.keys[new_node_index] = move_key;
         }
+        println!("new_node  {:#?}", new_node);
+        println!("after split {:#?}", self);
         new_node
     }
     pub fn is_full(&self) -> bool {
@@ -50,22 +53,32 @@ where
             children: [None; 2 * B + 1],
         }
     }
-    pub fn add_key(&mut self, x: T, key_index: KeyIndex) {
+    fn add_key(&mut self, x: T, key_index: KeyIndex) {
         let last_index = self.keys.len() - 1;
         if last_index != *key_index {
-            self.keys[*key_index..last_index].rotate_right(1);
+            self.keys[*key_index..=last_index].rotate_right(1);
         }
         self.keys[*key_index] = Some(x);
+    }
+    fn add_child(&mut self, key_index: KeyIndex, child_index: BIndex) {
+        let last_index = self.children.len() - 1;
+        let insert_index = *key_index;
+        self.children[insert_index..=last_index].rotate_right(1);
+        self.children[insert_index] = Some(child_index)
     }
     pub fn add(&mut self, x: T, index: BIndex) {
         let insert_key_index = self.find_it(&x);
         match insert_key_index {
             IndexUsedByFindIt::FindJust(_) => panic!("find just is not pattern at node.add"),
             IndexUsedByFindIt::NotFindResult(key_index) => {
-                self.add_key(x, key_index);
-                let len = self.children.len();
-                self.children[*key_index..(len - 1)].rotate_right(1);
-                self.children[*key_index] = Some(index)
+                self.add_key(x.clone(), key_index);
+                if let IndexUsedByFindIt::FindJust(key_index) = self.find_it(&x) {
+                    let key_index = (*key_index + 1).into();
+                    self.add_child(key_index, index);
+                };
+                ////let len = self.children.len();
+                ////self.children[*key_index..=(len - 1)].rotate_right(1);
+                ////self.children[*key_index] = Some(index)
             }
         }
     }
@@ -197,8 +210,8 @@ mod btree_test {
         let tobe = Node {
             keys: [Some(0), Some(1), Some(2), None],
             children: [
-                Some(4.into()),
                 Some(0.into()),
+                Some(4.into()),
                 Some(1.into()),
                 Some(2.into()),
                 None,
@@ -214,10 +227,32 @@ mod btree_test {
             keys: [Some(1), Some(2), Some(3), None],
             children: [
                 Some(0.into()),
-                Some(4.into()),
                 Some(1.into()),
+                Some(4.into()),
                 Some(2.into()),
                 None,
+            ],
+        };
+        assert_eq!(node, tobe);
+        let mut node = Node {
+            keys: [Some(1), Some(10), Some(11), None],
+            children: [
+                Some(0.into()),
+                Some(1.into()),
+                Some(2.into()),
+                Some(3.into()),
+                None,
+            ],
+        };
+        node.add(2, 4.into());
+        let tobe = Node {
+            keys: [Some(1), Some(2), Some(10), Some(11)],
+            children: [
+                Some(0.into()),
+                Some(1.into()),
+                Some(4.into()),
+                Some(2.into()),
+                Some(3.into()),
             ],
         };
         assert_eq!(node, tobe);
@@ -256,5 +291,43 @@ mod btree_test {
                 },
             }
         );
+        //println!("tree {:#?}", tree);
+        tree.add(1);
+        //println!("after add 1 {:#?}", tree);
+        tree.add(2);
+        //println!("after add 2 {:#?}", tree);
+        let root = Node {
+            keys: [Some(10), Some(12), None, None],
+            children: [Some(0.into()), Some(3.into()), Some(1.into()), None, None],
+        };
+        let left = Node {
+            keys: [Some(1), Some(2), None, None],
+            children: [None; 5],
+        };
+        let middle = Node {
+            keys: [Some(11), None, None, None],
+            children: [None; 5],
+        };
+        let right = Node {
+            keys: [Some(13), Some(14), None, None],
+            children: [None; 5],
+        };
+        let tobe = BTree {
+            root_index: 2.into(),
+            block_store: BlockStore {
+                block_list: vec![
+                    Block::new(0.into(), left),
+                    Block::new(1.into(), right),
+                    Block::new(2.into(), root),
+                    Block::new(3.into(), middle),
+                ],
+                free_list: vec![],
+            },
+        };
+        println!("tree = {:#?} tobe = {:#?}", tree, tobe);
+        println!("block 3 {:#?}", tree.block_store.block_list[3]);
+        let r = tree.root_index;
+        println!("block 0 {:#?}", tree.block_store.block_list[*r]);
+        assert_eq!(tree, tobe);
     }
 }
