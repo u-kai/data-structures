@@ -50,14 +50,17 @@ where
             children: [None; 2 * B + 1],
         }
     }
+    pub fn add_key(&mut self, x: T, key_index: KeyIndex) {
+        let len = self.keys.len();
+        self.keys[*key_index..(len - 1)].rotate_right(1);
+        self.keys[*key_index] = Some(x);
+    }
     pub fn add(&mut self, x: T, index: BIndex) {
         let insert_key_index = self.find_it(&x);
         match insert_key_index {
             IndexUsedByFindIt::FindJust(_) => panic!("find just is not pattern at node.add"),
             IndexUsedByFindIt::NotFindResult(key_index) => {
-                let len = self.keys.len();
-                self.keys[*key_index..(len - 1)].rotate_right(1);
-                self.keys[*key_index] = Some(x);
+                self.add_key(x, key_index);
                 let len = self.children.len();
                 self.children[*key_index..(len - 1)].rotate_right(1);
                 self.children[*key_index] = Some(index)
@@ -134,62 +137,34 @@ where
             .read_block(node_index)
             .map(|block| block.clone());
         match maybe_block {
-            Some(mut block) => {
-                match Self::find_it(&block.keys, &x) {
-                    IndexUsedByFindIt::FindJust(_) => return AddRecResult::AlreadyExist,
-                    IndexUsedByFindIt::NotFindResult(key_index) => {
-                        if block.is_leaf(key_index) {
-                            //block.add_key(x, key_index);
-                            //self.block_store.write_block(block);
-                        } else {
-                            let child_index =
-                                block.children[*key_index].expect("child num is invalid");
-                            //let rec_result = self.add_rec(x, child_index);
-                            //if let AddRecResult::Splited(index, node) = rec_result {
-                            //let x = node.remove(0.into()).unwrap();
-                            //self.block_store.update_block(index, node);
-                            //block.add_child(x, index);
-                            //}
-                        };
-                        if block.is_full() {
-                            let new_node = block.split();
-                            //self.block_store.add_new_block(new_node);
-
-                            let new_node_index = self.block_store.place_block(new_node.clone());
-                            return AddRecResult::Splited(new_node_index, new_node);
-                        } else {
-                            //self.block_store.write_block(node_index, node);
-                            return AddRecResult::NotSplite;
+            Some(mut block) => match &block.find_it(&x) {
+                IndexUsedByFindIt::FindJust(_) => return AddRecResult::AlreadyExist,
+                IndexUsedByFindIt::NotFindResult(key_index) => {
+                    if block.is_leaf(*key_index) {
+                        block.add_key(x, *key_index);
+                        self.block_store.write_block(block.clone());
+                    } else {
+                        let child_index = ChildIndex::from(**key_index);
+                        let block_index = block.children[*child_index].unwrap();
+                        let rec_result = self.add_rec(x, block_index);
+                        if let AddRecResult::Splited(index, mut new_node) = rec_result {
+                            let x = new_node.remove(KeyIndex::from(0)).unwrap();
+                            self.block_store.update_block(index, new_node.clone());
+                            block.add(x, index);
                         }
+                    };
+                    if block.is_full() {
+                        let new_node = block.split();
+                        let new_node_index = self.block_store.place_block(new_node.clone());
+                        return AddRecResult::Splited(new_node_index, new_node);
+                    } else {
+                        return AddRecResult::NotSplite;
                     }
                 }
-            }
+            },
             None => self.block_store.add_new_block(Node::new(x)),
         }
         AddRecResult::NotSplite
-    }
-
-    fn find_it(keys: &[Option<T>], x: &T) -> IndexUsedByFindIt {
-        let mut start = 0;
-        let mut end = keys.len();
-        while start != end {
-            let middle = (end + start) / 2;
-            let cmp = if keys[middle].is_none() {
-                Ordering::Less
-            } else {
-                x.cmp(&keys[middle].as_ref().unwrap())
-            };
-            match cmp {
-                Ordering::Less => {
-                    end = middle;
-                }
-                Ordering::Greater => {
-                    start = middle + 1;
-                }
-                _ => return IndexUsedByFindIt::FindJust(middle.into()),
-            }
-        }
-        IndexUsedByFindIt::NotFindResult(start.into())
     }
 }
 
@@ -218,6 +193,22 @@ mod btree_test {
             children: [
                 Some(4.into()),
                 Some(0.into()),
+                Some(1.into()),
+                Some(2.into()),
+                None,
+            ],
+        };
+        assert_eq!(node, tobe);
+        let mut node = Node {
+            keys: [Some(1), Some(3), None, None],
+            children: [Some(0.into()), Some(1.into()), Some(2.into()), None, None],
+        };
+        node.add(2, 4.into());
+        let tobe = Node {
+            keys: [Some(1), Some(2), Some(3), None],
+            children: [
+                Some(0.into()),
+                Some(4.into()),
                 Some(1.into()),
                 Some(2.into()),
                 None,

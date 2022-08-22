@@ -1,8 +1,10 @@
+use std::fmt::Debug;
+
 #[derive(Debug, PartialEq)]
-pub struct BinarySearchTree<T: Clone + PartialOrd + Ord + PartialEq> {
+pub struct BinarySearchTree<T: Clone + PartialOrd + Ord + PartialEq + Debug> {
     root: Option<Node<T>>,
 }
-impl<T: Clone + PartialOrd + Ord + PartialEq> BinarySearchTree<T> {
+impl<T: Clone + PartialOrd + Ord + PartialEq + Debug> BinarySearchTree<T> {
     pub fn new() -> Self {
         Self { root: None }
     }
@@ -18,12 +20,12 @@ impl<T: Clone + PartialOrd + Ord + PartialEq> BinarySearchTree<T> {
     }
 }
 #[derive(Debug, PartialEq)]
-struct Node<T: Clone + PartialOrd + Ord + PartialEq> {
+struct Node<T: Clone + PartialOrd + Ord + PartialEq + Debug> {
     data: T,
     right: Option<Box<Node<T>>>,
     left: Option<Box<Node<T>>>,
 }
-impl<T: Clone + PartialOrd + Ord + PartialEq> Node<T> {
+impl<T: Clone + PartialOrd + Ord + PartialEq + Debug> Node<T> {
     fn new(x: T) -> Self {
         Self {
             data: x,
@@ -46,28 +48,22 @@ impl<T: Clone + PartialOrd + Ord + PartialEq> Node<T> {
     }
     fn add(&mut self, x: T) -> bool {
         if self.data > x {
-            //if self.left.is_none() {
-            //let new_node = Some(Box::new(Node::new(x)));
-            //self.left = new_node;
-            //return true;
-            //}
-            return self
-                .left
-                .as_mut()
-                .map(|node| node.add(x.clone()))
-                .unwrap_or({
-                    let new_node = Some(Box::new(Node::new(x)));
-                    self.left = new_node;
+            return match self.left.as_mut() {
+                Some(left) => left.add(x),
+                None => {
+                    self.left = Some(Box::new(Node::new(x)));
                     true
-                });
+                }
+            };
         }
         if self.data < x {
-            if self.right.is_none() {
-                let new_node = Some(Box::new(Node::new(x)));
-                self.right = new_node;
-                return true;
-            }
-            return self.right.as_mut().map(|node| node.add(x)).unwrap();
+            return match self.right.as_mut() {
+                Some(right) => right.add(x),
+                None => {
+                    self.right = Some(Box::new(Node::new(x)));
+                    true
+                }
+            };
         }
         false
     }
@@ -100,9 +96,11 @@ fn test() {
     root.left = Some(Box::new(left));
     root.right = Some(Box::new(right));
     for d in &v {
+        println!("add {}", d);
         assert!(tree.add(*d));
+        println!("after {:#?}", tree);
     }
-    v.reverse();
+    println!("{:#?}", tree);
     for d in v {
         assert!(tree.find(d))
     }
