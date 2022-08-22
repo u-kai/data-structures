@@ -1,0 +1,930 @@
+time = 9.875µs
+BinarySearchTree {
+    root: Some(
+        Node {
+            data: -22,
+            right: Some(
+                Node {
+                    data: 105,
+                    right: Some(
+                        Node {
+                            data: 124,
+                            right: Some(
+                                Node {
+                                    data: 126,
+                                    right: Some(
+                                        Node {
+                                            data: 127,
+                                            right: None,
+                                            left: None,
+                                        },
+                                    ),
+                                    left: None,
+                                },
+                            ),
+                            left: Some(
+                                Node {
+                                    data: 107,
+                                    right: Some(
+                                        Node {
+                                            data: 121,
+                                            right: Some(
+                                                Node {
+                                                    data: 123,
+                                                    right: None,
+                                                    left: Some(
+                                                        Node {
+                                                            data: 122,
+                                                            right: None,
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: 119,
+                                                    right: Some(
+                                                        Node {
+                                                            data: 120,
+                                                            right: None,
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: 113,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: 117,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: 109,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 110,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                    left: Some(
+                                        Node {
+                                            data: 106,
+                                            right: None,
+                                            left: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                    left: Some(
+                        Node {
+                            data: -2,
+                            right: Some(
+                                Node {
+                                    data: 44,
+                                    right: Some(
+                                        Node {
+                                            data: 103,
+                                            right: Some(
+                                                Node {
+                                                    data: 104,
+                                                    right: None,
+                                                    left: None,
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: 59,
+                                                    right: Some(
+                                                        Node {
+                                                            data: 89,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: 94,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 95,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 97,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: 98,
+                                                                                            right: Some(
+                                                                                                Node {
+                                                                                                    data: 102,
+                                                                                                    right: None,
+                                                                                                    left: Some(
+                                                                                                        Node {
+                                                                                                            data: 99,
+                                                                                                            right: None,
+                                                                                                            left: None,
+                                                                                                        },
+                                                                                                    ),
+                                                                                                },
+                                                                                            ),
+                                                                                            left: None,
+                                                                                        },
+                                                                                    ),
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 92,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 91,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: 83,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 84,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 86,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: 88,
+                                                                                            right: None,
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 87,
+                                                                                                    right: None,
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 73,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 78,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: 82,
+                                                                                            right: None,
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 80,
+                                                                                                    right: None,
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                    left: Some(
+                                                                                        Node {
+                                                                                            data: 77,
+                                                                                            right: None,
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 75,
+                                                                                                    right: None,
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                },
+                                                                            ),
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 65,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: 68,
+                                                                                            right: Some(
+                                                                                                Node {
+                                                                                                    data: 71,
+                                                                                                    right: Some(
+                                                                                                        Node {
+                                                                                                            data: 72,
+                                                                                                            right: None,
+                                                                                                            left: None,
+                                                                                                        },
+                                                                                                    ),
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 67,
+                                                                                                    right: None,
+                                                                                                    left: Some(
+                                                                                                        Node {
+                                                                                                            data: 66,
+                                                                                                            right: None,
+                                                                                                            left: None,
+                                                                                                        },
+                                                                                                    ),
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                    left: Some(
+                                                                                        Node {
+                                                                                            data: 64,
+                                                                                            right: None,
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 60,
+                                                                                                    right: Some(
+                                                                                                        Node {
+                                                                                                            data: 63,
+                                                                                                            right: None,
+                                                                                                            left: Some(
+                                                                                                                Node {
+                                                                                                                    data: 61,
+                                                                                                                    right: None,
+                                                                                                                    left: None,
+                                                                                                                },
+                                                                                                            ),
+                                                                                                        },
+                                                                                                    ),
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: 58,
+                                                            right: None,
+                                                            left: Some(
+                                                                Node {
+                                                                    data: 54,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 56,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 55,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 50,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 52,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 45,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: 48,
+                                                                                            right: Some(
+                                                                                                Node {
+                                                                                                    data: 49,
+                                                                                                    right: None,
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                            left: Some(
+                                                                                                Node {
+                                                                                                    data: 47,
+                                                                                                    right: None,
+                                                                                                    left: None,
+                                                                                                },
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                    left: Some(
+                                        Node {
+                                            data: 16,
+                                            right: Some(
+                                                Node {
+                                                    data: 33,
+                                                    right: Some(
+                                                        Node {
+                                                            data: 36,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: 41,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 43,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 39,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 40,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 38,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: 34,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: 25,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: 27,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 28,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 26,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: 20,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 23,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 21,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: 13,
+                                                    right: Some(
+                                                        Node {
+                                                            data: 14,
+                                                            right: None,
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: 2,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: 6,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 11,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: 12,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: 10,
+                                                                                    right: None,
+                                                                                    left: Some(
+                                                                                        Node {
+                                                                                            data: 7,
+                                                                                            right: None,
+                                                                                            left: None,
+                                                                                        },
+                                                                                    ),
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: 4,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -1,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: 0,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                            left: Some(
+                                Node {
+                                    data: -3,
+                                    right: None,
+                                    left: Some(
+                                        Node {
+                                            data: -16,
+                                            right: Some(
+                                                Node {
+                                                    data: -7,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -6,
+                                                            right: None,
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: -8,
+                                                            right: None,
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -10,
+                                                                    right: None,
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: -13,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: -15,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: -18,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -17,
+                                                            right: None,
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: -20,
+                                                            right: None,
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -21,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+            left: Some(
+                Node {
+                    data: -118,
+                    right: Some(
+                        Node {
+                            data: -51,
+                            right: Some(
+                                Node {
+                                    data: -49,
+                                    right: Some(
+                                        Node {
+                                            data: -36,
+                                            right: Some(
+                                                Node {
+                                                    data: -35,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -30,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -26,
+                                                                    right: None,
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: -28,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: -29,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -34,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: None,
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: -45,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -44,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -37,
+                                                                    right: None,
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: -42,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: -43,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: -47,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -46,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                    left: None,
+                                },
+                            ),
+                            left: Some(
+                                Node {
+                                    data: -67,
+                                    right: Some(
+                                        Node {
+                                            data: -61,
+                                            right: Some(
+                                                Node {
+                                                    data: -60,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -57,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -56,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: -54,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -58,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: None,
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: -64,
+                                                    right: None,
+                                                    left: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                    left: Some(
+                                        Node {
+                                            data: -107,
+                                            right: Some(
+                                                Node {
+                                                    data: -93,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -90,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -72,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: -70,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: -69,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: -68,
+                                                                                            right: None,
+                                                                                            left: None,
+                                                                                        },
+                                                                                    ),
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: -83,
+                                                                            right: Some(
+                                                                                Node {
+                                                                                    data: -82,
+                                                                                    right: Some(
+                                                                                        Node {
+                                                                                            data: -80,
+                                                                                            right: Some(
+                                                                                                Node {
+                                                                                                    data: -73,
+                                                                                                    right: None,
+                                                                                                    left: Some(
+                                                                                                        Node {
+                                                                                                            data: -79,
+                                                                                                            right: None,
+                                                                                                            left: None,
+                                                                                                        },
+                                                                                                    ),
+                                                                                                },
+                                                                                            ),
+                                                                                            left: None,
+                                                                                        },
+                                                                                    ),
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: -87,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -91,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: -104,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -98,
+                                                                    right: None,
+                                                                    left: Some(
+                                                                        Node {
+                                                                            data: -99,
+                                                                            right: None,
+                                                                            left: None,
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                            left: Some(
+                                                Node {
+                                                    data: -110,
+                                                    right: Some(
+                                                        Node {
+                                                            data: -108,
+                                                            right: None,
+                                                            left: Some(
+                                                                Node {
+                                                                    data: -109,
+                                                                    right: None,
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                    left: Some(
+                                                        Node {
+                                                            data: -117,
+                                                            right: Some(
+                                                                Node {
+                                                                    data: -116,
+                                                                    right: Some(
+                                                                        Node {
+                                                                            data: -113,
+                                                                            right: None,
+                                                                            left: Some(
+                                                                                Node {
+                                                                                    data: -115,
+                                                                                    right: None,
+                                                                                    left: None,
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                    left: None,
+                                                                },
+                                                            ),
+                                                            left: None,
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                    left: Some(
+                        Node {
+                            data: -123,
+                            right: Some(
+                                Node {
+                                    data: -120,
+                                    right: None,
+                                    left: Some(
+                                        Node {
+                                            data: -121,
+                                            right: None,
+                                            left: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                            left: Some(
+                                Node {
+                                    data: -127,
+                                    right: None,
+                                    left: Some(
+                                        Node {
+                                            data: -128,
+                                            right: None,
+                                            left: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        },
+    ),
+}
+time = 9.541µs
+time = 291ns

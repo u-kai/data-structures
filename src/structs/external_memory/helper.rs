@@ -1,6 +1,6 @@
 pub const B: usize = 2;
-pub const fn build_B2_minus_1_none<T>() -> [Option<T>; 2 * B - 1] {
-    [None, None, None]
+pub const fn build_B2_none<T>() -> [Option<T>; 2 * B] {
+    [None, None, None, None]
     //[
     //None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
     //None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
