@@ -51,8 +51,10 @@ where
         }
     }
     pub fn add_key(&mut self, x: T, key_index: KeyIndex) {
-        let len = self.keys.len();
-        self.keys[*key_index..(len - 1)].rotate_right(1);
+        let last_index = self.keys.len() - 1;
+        if last_index != *key_index {
+            self.keys[*key_index..last_index].rotate_right(1);
+        }
         self.keys[*key_index] = Some(x);
     }
     pub fn add(&mut self, x: T, index: BIndex) {
@@ -115,7 +117,6 @@ where
     }
     pub fn add(&mut self, x: T) -> bool {
         let add_rec_result = self.add_rec(x, self.root_index);
-        println!("add_rec_result {:#?}", add_rec_result);
         match add_rec_result {
             AddRecResult::AlreadyExist => false,
             AddRecResult::NotSplite => true,
@@ -152,11 +153,13 @@ where
                             let x = new_node.remove(KeyIndex::from(0)).unwrap();
                             self.block_store.update_block(index, new_node.clone());
                             block.add(x, index);
+                            self.block_store.write_block(block.clone());
                         }
                     };
                     if block.is_full() {
                         let new_node = block.split();
                         let new_node_index = self.block_store.place_block(new_node.clone());
+                        self.block_store.write_block(block.clone());
                         return AddRecResult::Splited(new_node_index, new_node);
                     } else {
                         return AddRecResult::NotSplite;
@@ -235,19 +238,14 @@ mod btree_test {
             children: [None; 5],
         };
         tree.add(10);
-        println!("add 10 {:#?}", tree);
         tree.add(11);
-        println!("add 11 {:#?}", tree);
         tree.add(12);
-        println!("add 12 {:#?}", tree);
         tree.add(13);
-        println!("add 13 {:#?}", tree);
         tree.add(14);
-        println!("add 14 {:#?}", tree);
         assert_eq!(
             tree,
             BTree {
-                root_index: 5.into(),
+                root_index: 2.into(),
                 block_store: BlockStore {
                     block_list: vec![
                         Block::new(0.into(), left),
@@ -258,49 +256,5 @@ mod btree_test {
                 },
             }
         );
-        //let mut left = Node {id:0,
-        //keys: [Some(3), Some(6), None, None],
-        //children: [None, None, None, None, None],
-        //};
-        //let mut right = Node {id:0,
-        //keys: [Some(14), Some(17), Some(22), None],
-        //children: [None, None, None, None, None],
-        //};
-        //let left_left = Node {id:0,
-        //keys: [Some(0), Some(1), Some(2), None],
-        //children: [None; 5],
-        //};
-        //let left_middle = Node {id:0,
-        //keys: [Some(4), Some(5), None, None],
-        //children: [None; 5],
-        //};
-        //let left_rigth = Node {id:0,
-        //keys: [Some(7), Some(8), Some(9), None],
-        //children: [None; 5],
-        //};
-        //let mut right_left = Node {id:0,
-        //keys: [Some(11), Some(12), Some(14), None],
-        //children: [None, None, None, None, None],
-        //};
-        //let mut right_middle1 = Node {id:0,
-        //keys: [Some(15), Some(16), None, None],
-        //children: [None, None, None, None, None],
-        //};
-        //let mut right_middle2 = Node {id:0,
-        //keys: [Some(18), Some(19), Some(20), None],
-        //children: [None, None, None, None, None],
-        //};
-        //let mut right_right = Node {id:0,
-        //keys: [Some(23), Some(24), None, None],
-        //children: [None, None, None, None, None],
-        //};
-        //root.children[0] = Some(1);
-        //root.children[1] = Some(2);
-        //left.children[0] = Some(3);
-        //left.children[1] = Some(4);
-        //left.children[2] = Some(5);
-        //left.children[] = Some(5);
-
-        //bs.write_block(0, b)
     }
 }
