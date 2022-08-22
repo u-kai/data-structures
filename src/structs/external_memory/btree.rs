@@ -28,16 +28,17 @@ where
         };
         println!("before split {:#?}", self);
         let mut new_node = Node::new_empty();
-        for (new_node_index, move_index) in (B..=(2 * B)).enumerate() {
+        for (new_node_index, move_index) in (B..self.children.len()).enumerate() {
             let move_child_index = self.children[move_index].take();
             new_node.children[new_node_index] = move_child_index;
         }
-        for (new_node_index, key_index) in (B..=(2 * B - 1)).enumerate() {
+        for (new_node_index, key_index) in (B..self.keys.len()).enumerate() {
             let move_key = self.keys[key_index].take();
             new_node.keys[new_node_index] = move_key;
         }
-        println!("new_node  {:#?}", new_node);
-        println!("after split {:#?}", self);
+
+        println!("after splited {:#?}", self);
+        println!("new_node {:#?}", new_node);
         new_node
     }
     pub fn is_full(&self) -> bool {
@@ -63,6 +64,9 @@ where
     fn add_child(&mut self, key_index: KeyIndex, child_index: BIndex) {
         let last_index = self.children.len() - 1;
         let insert_index = *key_index;
+        //if last_index != insert_index {
+        //self.children[insert_index..=last_index].rotate_right(1);
+        //}
         self.children[insert_index..=last_index].rotate_right(1);
         self.children[insert_index] = Some(child_index)
     }
@@ -105,8 +109,10 @@ where
         IndexUsedByFindIt::NotFindResult(start.into())
     }
     pub fn remove(&mut self, key_index: KeyIndex) -> Option<T> {
+        println!("before removed {:#?}", self);
         let removed = self.keys[*key_index].take();
         self.keys.rotate_left(1);
+        println!("after removed {:#?}", self);
         removed
     }
 }
@@ -133,10 +139,10 @@ where
         match add_rec_result {
             AddRecResult::AlreadyExist => false,
             AddRecResult::NotSplite => true,
-            AddRecResult::Splited(index, mut node) => {
+            AddRecResult::Splited(mut splited_node, index, mut node) => {
                 let mut new_root = Node::new_empty();
-                let x = node.remove(0.into());
-                self.block_store.update_block(index, node);
+                let x = splited_node.remove(0.into());
+                self.block_store.write_block(splited_node);
                 new_root.children[0] = self.root_index.into();
                 new_root.keys[0] = x;
                 new_root.children[1] = index.into();
@@ -162,9 +168,11 @@ where
                         let child_index = ChildIndex::from(**key_index);
                         let block_index = block.children[*child_index].unwrap();
                         let rec_result = self.add_rec(x, block_index);
-                        if let AddRecResult::Splited(index, mut new_node) = rec_result {
-                            let x = new_node.remove(KeyIndex::from(0)).unwrap();
-                            self.block_store.update_block(index, new_node.clone());
+                        if let AddRecResult::Splited(mut splited_node, index, mut new_node) =
+                            rec_result
+                        {
+                            let x = splited_node.remove(KeyIndex::from(0)).unwrap();
+                            self.block_store.write_block(splited_node);
                             block.add(x, index);
                             self.block_store.write_block(block.clone());
                         }
@@ -172,8 +180,7 @@ where
                     if block.is_full() {
                         let new_node = block.split();
                         let new_node_index = self.block_store.place_block(new_node.clone());
-                        self.block_store.write_block(block.clone());
-                        return AddRecResult::Splited(new_node_index, new_node);
+                        return AddRecResult::Splited(block, new_node_index, new_node);
                     } else {
                         return AddRecResult::NotSplite;
                     }
@@ -194,7 +201,7 @@ enum IndexUsedByFindIt {
 enum AddRecResult<T> {
     AlreadyExist,
     NotSplite,
-    Splited(BIndex, Node<T>),
+    Splited(Block<Node<T>>, BIndex, Node<T>),
 }
 
 #[cfg(test)]
@@ -261,15 +268,15 @@ mod btree_test {
     fn add_test() {
         let mut tree = BTree::<i32>::new();
         let root = Node {
-            keys: [Some(12), None, None, None],
+            keys: [Some(10), None, None, None],
             children: [Some(0.into()), Some(1.into()), None, None, None],
         };
         let left = Node {
-            keys: [Some(10), Some(11), None, None],
+            keys: [Some(11), None, None, None],
             children: [None; 5],
         };
         let right = Node {
-            keys: [Some(13), Some(14), None, None],
+            keys: [Some(12), Some(13), Some(14), None],
             children: [None; 5],
         };
         tree.add(10);
@@ -277,39 +284,63 @@ mod btree_test {
         tree.add(12);
         tree.add(13);
         tree.add(14);
-        assert_eq!(
-            tree,
-            BTree {
-                root_index: 2.into(),
-                block_store: BlockStore {
-                    block_list: vec![
-                        Block::new(0.into(), left),
-                        Block::new(1.into(), right),
-                        Block::new(2.into(), root)
-                    ],
-                    free_list: vec![]
-                },
-            }
-        );
+        let tobe = BTree {
+            root_index: 2.into(),
+            block_store: BlockStore {
+                block_list: vec![
+                    Block::new(0.into(), left),
+                    Block::new(1.into(), right),
+                    Block::new(2.into(), root),
+                ],
+                free_list: vec![],
+            },
+        };
+        println!("tree  {:#?}", tree);
+        println!("tobe  {:#?}", tobe);
+        assert_eq!(tree, tobe);
         //println!("tree {:#?}", tree);
         tree.add(1);
         //println!("after add 1 {:#?}", tree);
         tree.add(2);
         //println!("after add 2 {:#?}", tree);
         let root = Node {
-            keys: [Some(10), Some(12), None, None],
-            children: [Some(0.into()), Some(3.into()), Some(1.into()), None, None],
+            keys: [Some(10), None, None, None],
+            children: [Some(0.into()), Some(1.into()), None, None, None],
         };
         let left = Node {
-            keys: [Some(1), Some(2), None, None],
-            children: [None; 5],
-        };
-        let middle = Node {
-            keys: [Some(11), None, None, None],
+            keys: [Some(1), Some(2), Some(11), None],
             children: [None; 5],
         };
         let right = Node {
-            keys: [Some(13), Some(14), None, None],
+            keys: [Some(12), Some(13), Some(14), None],
+            children: [None; 5],
+        };
+        let tobe = BTree {
+            root_index: 2.into(),
+            block_store: BlockStore {
+                block_list: vec![
+                    Block::new(0.into(), left),
+                    Block::new(1.into(), right),
+                    Block::new(2.into(), root),
+                ],
+                free_list: vec![],
+            },
+        };
+        assert_eq!(tree, tobe);
+        let root = Node {
+            keys: [Some(1), Some(10), None, None],
+            children: [Some(0.into()), Some(3.into()), Some(1.into()), None, None],
+        };
+        let left = Node {
+            keys: [Some(2), None, None, None],
+            children: [None; 5],
+        };
+        let middle = Node {
+            keys: [Some(3), Some(11), None, None],
+            children: [None; 5],
+        };
+        let right = Node {
+            keys: [Some(12), Some(13), Some(14), None],
             children: [None; 5],
         };
         let tobe = BTree {
@@ -324,10 +355,13 @@ mod btree_test {
                 free_list: vec![],
             },
         };
-        println!("tree = {:#?} tobe = {:#?}", tree, tobe);
-        println!("block 3 {:#?}", tree.block_store.block_list[3]);
-        let r = tree.root_index;
-        println!("block 0 {:#?}", tree.block_store.block_list[*r]);
+        tree.add(3);
         assert_eq!(tree, tobe);
+        let mut tree = BTree::<i32>::new();
+        for i in 0..15 {
+            tree.add(i);
+        }
+        println!("{:#?}", tree);
+        assert!(false)
     }
 }
